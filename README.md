@@ -25,11 +25,14 @@ python scripts/build-names.py  # writes data/*.json and data-src/irish-review.tx
 
 - Sources: ONS (England and Wales), NRS (Scotland), NISRA (Northern Ireland), CSO (Republic of Ireland).
 - Last five years of each source (`YEARS` in `build-names.py`), counts summed, accent-only spelling variants grouped into one card.
+- Each name also carries per-year counts (for the trend) and per-country counts and ranks (England & Wales, Scotland, Northern Ireland, Republic of Ireland).
 - Names with fewer than 15 combined births are dropped (`MIN_TOTAL`); names on the curated Irish list keep a lower floor (`IRISH_MIN_TOTAL`).
 - Irish tagging: `data-src/irish-names.txt` (one name per line, accent-insensitive; `# ?` marks uncertain names, which are not tagged), plus a pattern heuristic for Irish-language spellings found in the CSO data. `data-src/irish-review.txt` lists what the heuristic tagged and which uncertain names were left out.
 - When a new year is published, update the URLs in `fetch-data.py` and `YEARS`/`VERSION` in `build-names.py`.
 
 ## Licences
+
+Fonts: Fraunces (SIL Open Font License 1.1), self-hosted subsets in `fonts/`.
 
 Contains public sector information licensed under the Open Government Licence v3.0
 (ONS, National Records of Scotland, NISRA). Irish data from the CSO, licensed under CC BY 4.0.

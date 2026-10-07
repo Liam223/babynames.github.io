@@ -14,6 +14,11 @@ export function attachSwipe(card, onDecide) {
     stamp('like').style.opacity = horizontal && dx > 0 ? p(dx) : 0;
     stamp('nope').style.opacity = horizontal && dx < 0 ? p(-dx) : 0;
     stamp('love').style.opacity = !horizontal && dy < 0 ? p(-dy) : 0;
+    // coloured edge glow that grows as the swipe commits
+    const dir = horizontal ? (dx > 0 ? 'like' : 'nope') : dy < 0 ? 'love' : null;
+    const amount = horizontal ? p(Math.abs(dx)) : dy < 0 ? p(-dy) : 0;
+    card.style.setProperty('--glow-c', dir ? `var(--${dir === 'nope' ? 'nope' : dir})` : 'transparent');
+    card.style.setProperty('--glow-o', String(amount));
   }
 
   function direction(vx, vy) {
@@ -50,6 +55,7 @@ export function attachSwipe(card, onDecide) {
     if (!reduced()) card.style.transition = 'transform .28s cubic-bezier(.2,1.4,.4,1)';
     dx = dy = 0; paint();
     for (const c of ['like', 'nope', 'love']) stamp(c).style.opacity = 0;
+    card.style.setProperty('--glow-o', '0');
   }
 
   function fling(dir) {
@@ -58,7 +64,9 @@ export function attachSwipe(card, onDecide) {
     const W = innerWidth, H = innerHeight;
     const tx = dir === 'like' ? W : dir === 'no' ? -W : dx;
     const ty = dir === 'love' ? -H : dy;
-    if (dir !== 'love') stamp(dir === 'like' ? 'like' : 'nope').style.opacity = 1; else stamp('love').style.opacity = 1;
+    stamp(dir === 'no' ? 'nope' : dir).style.opacity = 1;
+    card.style.setProperty('--glow-c', `var(--${dir === 'no' ? 'nope' : dir})`);
+    card.style.setProperty('--glow-o', '1');
     const finish = () => onDecide(dir);
     if (reduced()) return finish();
     card.style.transition = 'transform .32s ease-in, opacity .32s ease-in';

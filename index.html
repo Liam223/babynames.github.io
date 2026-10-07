@@ -8,9 +8,7 @@
 <meta name="theme-color" content="#FBF6F0" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17161C" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%B6%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap">
+<link rel="preload" href="./fonts/fraunces-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body data-sex="both">
@@ -42,12 +40,13 @@
         <label><input type="radio" name="sex" value="girls"><span>Girls</span></label>
         <label><input type="radio" name="sex" value="both"><span>Both</span></label>
       </div>
+      <p id="sex-help" class="help muted"></p>
     </fieldset>
 
     <label class="toggle">
       <input type="checkbox" id="f-irish">
       <span class="switch" aria-hidden="true"></span>
-      <span>Irish names only <span aria-hidden="true">☘️</span></span>
+      <span>Irish names only <span aria-hidden="true">☘️</span> <span id="irish-count" class="muted count"></span></span>
     </label>
 
     <fieldset class="group">
@@ -61,7 +60,7 @@
     </fieldset>
 
     <details class="group letters">
-      <summary>Starting letter <span id="letters-count" class="muted"></span></summary>
+      <summary>Starting letter: <span id="letters-count" class="muted">Any</span></summary>
       <div id="letters" class="chips" role="group" aria-label="Starting letters"></div>
       <button id="letters-clear" class="link" type="button">Clear letters</button>
     </details>
@@ -72,6 +71,11 @@
 
   <!-- Swipe -->
   <section id="screen-swipe" class="screen" hidden aria-label="Swipe round">
+    <div id="coach" class="coach" hidden>
+      <p><span class="k">←</span> No &nbsp; <span class="k">→</span> Like &nbsp; <span class="k">↑</span> Love</p>
+      <p class="muted">Swipe the card or use the buttons.</p>
+      <button id="coach-ok" class="link" type="button">Got it</button>
+    </div>
     <div class="progress"><span id="progress"></span></div>
     <div id="stage" class="stage"></div>
     <div class="actions" role="group" aria-label="Decide">
@@ -83,6 +87,7 @@
       <button id="btn-undo" class="btn ghost">↶ Undo</button>
       <button id="btn-rank" class="btn ghost" disabled>Rank favourites</button>
     </div>
+    <p id="toast" class="toast" role="status" hidden></p>
     <p class="hint-keys muted center">Swipe, tap, or use ← → ↑ and Z to undo</p>
   </section>
 
@@ -93,6 +98,11 @@
       <button role="tab" data-tab="love">Loved <span class="n"></span></button>
       <button role="tab" data-tab="like">Liked <span class="n"></span></button>
       <button role="tab" data-tab="no">Eliminated <span class="n"></span></button>
+    </div>
+    <div class="sort" role="group" aria-label="Sort by">
+      <span class="muted">Sort:</span>
+      <button data-sort="rank" aria-pressed="true">Popularity</button>
+      <button data-sort="az" aria-pressed="false">A–Z</button>
     </div>
     <ul id="list" class="rows"></ul>
     <button id="list-more" class="btn ghost" hidden>Show more</button>
@@ -116,8 +126,8 @@
     <div class="panel danger">
       <p class="panel-title">Reset</p>
       <div class="row">
-        <button id="btn-reset-sex" class="btn">Reset current selection</button>
-        <button id="btn-reset-all" class="btn">Reset everything</button>
+        <button id="btn-reset-sex" class="btn danger-btn">Reset current selection</button>
+        <button id="btn-reset-all" class="btn danger-btn">Reset everything</button>
       </div>
     </div>
     <p id="storage-warn" class="muted" hidden>Your browser is blocking storage, so progress won't be saved. Use Export backup to keep it.</p>

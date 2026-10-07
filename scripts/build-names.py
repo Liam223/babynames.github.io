@@ -80,14 +80,18 @@ def num(v) -> int:
         return 0     # '[x]', '-', '..' etc. (suppressed small counts)
 
 
-# data[sex][name] = {source: count}
-data = {"boys": defaultdict(lambda: defaultdict(int)), "girls": defaultdict(lambda: defaultdict(int))}
+# data[sex][name][source][year] = count
+data = {sex: defaultdict(lambda: defaultdict(lambda: defaultdict(int))) for sex in ("boys", "girls")}
+
+# Order matters: it is the order of the per-country arrays in the output.
+SOURCES = ("ONS", "NRS", "NISRA", "CSO")
+COUNTRIES = ["England & Wales", "Scotland", "Northern Ireland", "Republic of Ireland"]
 
 
-def add(sex, raw_name, count, source):
+def add(sex, raw_name, count, source, year):
     n = tidy(raw_name)
     if n and count > 0:
-        data[sex][n][source] += count
+        data[sex][n][source][year] += count
 
 
 def load_ons():
@@ -101,7 +105,7 @@ def load_ons():
                     header = {str(c).strip(): i for i, c in enumerate(r) if c}
                 continue
             for y in YEARS:
-                add(sex, r[0], num(r[header[f"{y} Count"]]), "ONS")
+                add(sex, r[0], num(r[header[f"{y} Count"]]), "ONS", y)
 
 
 def load_nisra():
@@ -116,14 +120,14 @@ def load_nisra():
         for r in rows[hi + 1:]:
             for y in YEARS:
                 i = cols[y]
-                add(sex, r[i], num(r[i + 1]), "NISRA")
+                add(sex, r[i], num(r[i + 1]), "NISRA", y)
 
 
 def load_nrs():
     with open(SRC / "nrs-full-1974-2025.csv", encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
             if int(r["Year"]) in YEARS:
-                add("boys" if r["Sex"] == "Boy" else "girls", r["Name"], num(r["Number"]), "NRS")
+                add("boys" if r["Sex"] == "Boy" else "girls", r["Name"], num(r["Number"]), "NRS", int(r["Year"]))
 
 
 def load_cso():
@@ -133,7 +137,7 @@ def load_cso():
             next(rd)
             for r in rd:
                 if r[0] == f"{code}C01" and int(r[3]) in YEARS and r[7]:
-                    add(sex, r[5], num(r[7]), "CSO")
+                    add(sex, r[5], num(r[7]), "CSO", int(r[3]))
 
 
 def load_irish_list():
@@ -146,14 +150,33 @@ def load_irish_list():
     return certain, uncertain - certain
 
 
+def competition_ranks(counts):
+    """{key: count} -> {key: rank}; equal counts share a rank (1, 2, 2, 4...)."""
+    ordered = sorted(counts.values(), reverse=True)
+    first = {}
+    for i, c in enumerate(ordered):
+        first.setdefault(c, i + 1)
+    return {k: first[c] for k, c in counts.items()}
+
+
 def build(sex, irish, uncertain, review):
-    groups = defaultdict(lambda: {"spell": defaultdict(int), "src": defaultdict(int)})
+    groups = defaultdict(lambda: {"spell": defaultdict(int), "src": defaultdict(int), "yrs": defaultdict(int),
+                                  "srcyr": defaultdict(int)})
     for name, srcs in data[sex].items():
         g = groups[strip_accents(name)]
-        total = sum(srcs.values())
-        g["spell"][name] += total
-        for s, c in srcs.items():
-            g["src"][s] += c
+        for s, years in srcs.items():
+            for y, c in years.items():
+                g["spell"][name] += c
+                g["src"][s] += c
+                g["yrs"][y] += c
+
+    # Per-country rank among every name that country recorded (before the global threshold).
+    country_rank, country_size = {}, []
+    for s in SOURCES:
+        counts = {k: g["src"][s] for k, g in groups.items() if g["src"].get(s)}
+        country_rank[s] = competition_ranks(counts)
+        country_size.append(len(counts))
+    year_totals = [sum(g["yrs"].get(y, 0) for g in groups.values()) for y in YEARS]
 
     rows = []
     for key, g in groups.items():
@@ -176,10 +199,15 @@ def build(sex, irish, uncertain, review):
             review["heuristic"].append((sex, display, total))
         if not flag and key in uncertain:
             review["uncertain"].append((sex, display, total))
-        rows.append((display, total, key, int(flag), variants))
+        yrs = [g["yrs"].get(y, 0) for y in YEARS]
+        counts = [g["src"].get(s, 0) for s in SOURCES]
+        ranks = [country_rank[s].get(key, 0) for s in SOURCES]
+        rows.append((display, total, key, int(flag), variants, yrs, counts, ranks))
 
     rows.sort(key=lambda r: (-r[1], r[2]))
-    return [[d, t, i + 1, f] + ([v] if v else []) for i, (d, t, _k, f, v) in enumerate(rows)]
+    names = [[d, t, i + 1, f, v, y, c, r] for i, (d, t, _k, f, v, y, c, r) in enumerate(rows)]
+    meta = {"yearTotals": year_totals, "countrySizes": country_size}
+    return names, meta
 
 
 def main():
@@ -190,10 +218,11 @@ def main():
     y0, y1 = YEARS[0], YEARS[-1]
     sources = [f"ONS {y0}–{y1}", f"NRS {y0}–{y1}", f"NISRA {y0}–{y1}", f"CSO {y0}–{y1}"]
     for sex in ("boys", "girls"):
-        names = build(sex, irish, uncertain, review)
+        names, meta = build(sex, irish, uncertain, review)
         path = OUT / f"{sex}.json"
-        path.write_text(json.dumps({"version": VERSION, "sources": sources, "names": names},
-                                   ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        # name tuple: [display, total, rank, irish(0/1), variants[], perYear[5], perCountry[4], countryRank[4]]
+        out = {"version": VERSION, "sources": sources, "years": list(YEARS), "countries": COUNTRIES, **meta, "names": names}
+        path.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         n_irish = sum(r[3] for r in names)
         print(f"{sex}: {len(names)} names, {n_irish} Irish-tagged, {path.stat().st_size // 1024} KB")
     with open(SRC / "irish-review.txt", "w", encoding="utf-8") as f:
