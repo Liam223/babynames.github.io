@@ -705,6 +705,15 @@ function renderInfo() {
   chips.push(base.alt ? '<span class="ichip both">Unisex</span>' : `<span class="ichip ${n.sex}">${n.sex === 'boys' ? 'Boys’ name' : 'Girls’ name'}</span>`);
   if (irish) chips.push('<span class="ichip irish">☘️ Irish name</span>');
   if (cl) chips.push(`<span class="ichip">${cl.peak <= 2005 ? 'Classic' : 'Past favourite'}</span>`);
+  // your choice and rating sit with the other tags, on the right (nothing is shown until you've decided)
+  const dec = state.decisions[n.sex][n.key];
+  const rating = state.elo[n.sex][n.key];
+  if (dec) {
+    const ic = { love: 'star', like: 'heart', no: 'x' }[dec];
+    const word = { love: 'Loved', like: 'Liked', no: 'Eliminated' }[dec];
+    const rate = rating && rating.n ? `<span class="rate" title="Rating after ${rating.n} comparison${rating.n === 1 ? '' : 's'}">${fmt(Math.round(rating.r))}</span>` : '';
+    chips.push(`<span class="ichip choice ${dec}">${icon(ic, 14)}${word}${rate}</span>`);
+  }
   out.push(`<div class="ichips">${chips.join('')}</div>`);
 
   // unisex: split and switch
@@ -747,13 +756,6 @@ function renderInfo() {
       <p class="ichips">${n.variants.map((v) => `<span class="ichip">${esc(v)}</span>`).join('')}</p>
       <p class="muted small">Spellings that differ only by accents or capitals are grouped with this card.</p></div>`);
   }
-
-  // your choice
-  const d = state.decisions[n.sex][n.key];
-  const elo = state.elo[n.sex][n.key];
-  const label = { love: 'Loved', like: 'Liked', no: 'Eliminated' }[d] || 'Not decided yet';
-  out.push(`<div class="panel">${ptitle('heart', 'red', 'Your choice')}
-    <p><span class="ichip ${d || ''}">${label}</span>${elo && elo.n ? ` <span class="muted">Rating ${fmt(Math.round(elo.r))} after ${elo.n} comparison${elo.n === 1 ? '' : 's'}</span>` : ''}</p></div>`);
 
   out.push('<div id="info-extra"></div>');
   out.push('<p class="muted small center">Counts: ONS, National Records of Scotland, NISRA and CSO. Contains public sector information licensed under the Open Government Licence v3.0.</p>');
@@ -929,7 +931,7 @@ function historyPanel(n, h) {
       const c = v === 'all' ? n.count : n.byCountry[v];
       recent = c ? `${r ? `#${fmt(r)} · ` : ''}${fmt(c)} ${c === 1 ? 'baby' : 'babies'}` : 'none';
     }
-    const tag = v === soIdx ? '<span class="tag">★ Especially popular</span>' : '';
+    const tag = v === soIdx ? `<span class="star" role="img" aria-label="Especially popular here" title="Especially popular here">${icon('star', 12)}</span>` : '';
     const cc = v === 'all' ? ALL_COLOUR : COUNTRY_COLOUR[v];
     return `<button type="button" class="crow${on ? ' on' : ''}" data-c="${v}" style="--cc:var(--${cc});--ccd:var(--${cc === 'yellow' ? 'yellow-d' : cc})" aria-pressed="${on}">
       <i class="dot"></i><span class="cn">${esc(label)}${tag}<small>${esc(sub)}</small></span>
@@ -945,7 +947,7 @@ function historyPanel(n, h) {
   return {
     html: `<div class="panel" style="--cc:var(--${colour});--ccd:var(--${colour === 'yellow' ? 'yellow-d' : colour})">${ptitle('trend', 'orange', 'Over the years')}${body}
       <p class="panel-title sub">Where it was popular</p>
-      ${n.classic ? '' : `<p class="muted small">Rank (within each country’s own list) and babies are for ${esc(spanTxt)}. Totals and peaks cover each country’s whole history.</p>`}
+      ${n.classic ? '' : `<p class="muted small">Rank (within each country’s own list) and babies are for ${esc(spanTxt)}. Totals and peaks cover each country’s whole history.${soIdx >= 0 ? ' A gold star marks where the name ranks far higher than it does overall.' : ''}</p>`}
       <div class="crows">${rowsHtml}</div>${rare}
       <details class="note"><summary>How to read this</summary>
         <p>Bars are births per year; the line is a 5-year rolling average. Names given to fewer than 3 babies in a year aren’t published, so those years show as gaps and the totals are minimums. “All four combined” starts in 1997, the first year every country’s records overlap; each country’s own chart goes back as far as its records do (Republic of Ireland 1964, Scotland 1974, England &amp; Wales 1996, Northern Ireland 1997). Drag along the chart to read a year.</p></details></div>`,

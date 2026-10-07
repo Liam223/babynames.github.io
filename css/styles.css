@@ -509,3 +509,11 @@ details.note p { margin: 4px 0 0; font-size: .8rem; color: var(--muted); }
 .crow .sp { grid-area: sp; }
 .crow .rc { grid-area: rc; font-size: .8rem; font-weight: 700; line-height: 1.25; }
 .crow .ct { grid-area: ct; }
+
+/* gold star: especially popular here */
+.crow .star { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 8px; border-radius: 50%; background: var(--yellow); color: var(--on-yellow); vertical-align: -4px; box-shadow: 0 1px 0 var(--yellow-d); }
+.crow .star .icon { fill: currentColor; }
+/* your choice, in the tag row */
+.ichip.choice { margin-left: auto; gap: 6px; }
+.ichip.choice .icon { fill: currentColor; }
+.ichip.choice .rate { margin-left: 2px; padding-left: 8px; border-left: 2px solid color-mix(in srgb, currentColor 35%, transparent); font-variant-numeric: tabular-nums; }
