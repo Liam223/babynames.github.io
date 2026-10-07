@@ -384,14 +384,14 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 /* the old Back / Compare buttons are gone, so tighten the toast: it floats above the bar */
 .toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 12px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 40; margin: 0; width: max-content; max-width: min(92vw, 420px); }
 
-@media (min-width: 820px) {
+@media (min-width: 600px) {
+  /* tabs become a second header row, exactly as wide as the content column below */
   body { padding-bottom: 0; }
-  .top .tabbar { position: static; display: flex; gap: 8px; padding: 0; background: none; border: 0; }
-  .tab { flex-direction: row; gap: 8px; min-height: 46px; padding: 0 14px; font-size: .95rem; }
-  .tab-badge { position: static; margin-left: 2px; }
-  .toast { bottom: 24px; }
-  .top { max-width: 920px; }
+  .top { flex-wrap: wrap; max-width: 560px; }
+  .top .tabbar { position: static; order: 3; flex: 0 0 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 0 0 4px; background: none; border: 0; }
+  .tab { flex-direction: row; gap: 8px; min-height: 46px; padding: 0 8px; font-size: .95rem; }
   .tab-label { white-space: nowrap; }
+  .toast { bottom: 24px; }
 }
 
 .sortbtn { width: 118px; justify-content: center; }
