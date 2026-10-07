@@ -26,9 +26,9 @@
   &nbsp;
   <img src="docs/screenshots/swipe.jpg" alt="Swipe card for the name Aoife with rank, trend and country ranks" width="190">
   &nbsp;
-  <img src="docs/screenshots/compare.jpg" alt="Head-to-head comparison of two names" width="190">
+  <img src="docs/screenshots/compare.jpg?v=2" alt="Head-to-head comparison of two names" width="190">
   &nbsp;
-  <img src="docs/screenshots/ranked.jpg" alt="Ranked list with ratings" width="190">
+  <img src="docs/screenshots/ranked.jpg?v=2" alt="Ranked list with ratings" width="190">
 </p>
 <p align="center">
   <sub>Welcome &middot; Swipe &middot; Compare &middot; Ranked</sub>
