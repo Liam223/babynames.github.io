@@ -399,7 +399,7 @@ function renderList() {
     ul.append(li);
   }
   $('#list-more').hidden = rows.length <= listLimit;
-  $('#rank-more').hidden = listTab !== 'ranked' || rankedRows().length < 2;
+  $('#rank-more').hidden = rankedRows().length < 2;
 }
 
 /* ---------- ranking (this-or-that) ---------- */

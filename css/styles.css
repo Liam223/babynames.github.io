@@ -143,6 +143,12 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 
 .btn.back { background: var(--green); color: var(--on-green); border-color: var(--green); box-shadow: 0 2px 0 var(--green-d); min-height: 44px; margin: 4px 0 6px; padding: 0 16px; }
 
+.topbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 6px; }
+.topbar .btn { padding: 0 14px; }
+.topbar .btn.back { margin: 0; }
+.btn.compare { min-height: 44px; padding: 0 16px; background: var(--blue); color: var(--on-blue); border-color: var(--blue); box-shadow: 0 2px 0 var(--blue-d); }
+.btn.compare .icon { fill: currentColor; }
+
 /* welcome back */
 .resume { background: var(--green); color: var(--on-green); border-radius: 18px; padding: 16px; margin: 0 0 18px; box-shadow: 0 4px 0 var(--green-d); }
 .resume-title { font: 700 1.4rem var(--font-display); margin: 0 0 12px; }
