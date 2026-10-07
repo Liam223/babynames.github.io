@@ -95,10 +95,19 @@ GitHub Pages serves the `main` branch from the repository root. `.nojekyll` make
 ## Project layout
 
 ```
-index.html              Single page: all screens are <section>s toggled by app.js
+index.html              Single page: all screens are <section>s toggled by js/core.js
 css/styles.css          Design tokens, components and layout (self-contained)
 js/
-  app.js                Screens, state, filtering, queue, cards, list, ranking UI
+  main.js               Entry point: wires the screens together and loads the name data
+  core.js               Shared state, small helpers, and screen switching (every screen imports it)
+  welcome.js            Welcome screen and filters
+  deck.js               Eligible names, the shuffled queue, the name card, swiping and undo
+  rank.js               Compare ("This or that?"): votes, ratings, ranked order
+  list.js               My list: tabs, search, boys/girls filter, sorting
+  info.js               Details screen: popularity, spellings, origin and pronunciation
+  history.js            Details "Over the years" panel: per-country history, story and chart
+  settings.js           Backup export/import, nickname, resets
+
   swipe.js              Pointer-event gestures (touch + mouse) and the stamp/glow feedback
   elo.js                Rating maths and pair selection; every tunable is in CONFIG
   names.js              Loads the JSON data, grouping key, trend and "standout" stats
