@@ -22,13 +22,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/welcome.jpg" alt="Welcome screen with resume panel and filters" width="190">
+  <img src="docs/screenshots/welcome.jpg?v=3" alt="Welcome screen with resume panel and filters" width="190">
   &nbsp;
-  <img src="docs/screenshots/swipe.jpg" alt="Swipe card for the name Aoife with rank, trend and country ranks" width="190">
+  <img src="docs/screenshots/swipe.jpg?v=3" alt="Swipe card for the name Aoife with rank, trend and country ranks" width="190">
   &nbsp;
-  <img src="docs/screenshots/compare.jpg?v=2" alt="Head-to-head comparison of two names" width="190">
+  <img src="docs/screenshots/compare.jpg?v=3" alt="Head-to-head comparison of two names" width="190">
   &nbsp;
-  <img src="docs/screenshots/ranked.jpg?v=2" alt="Ranked list with ratings" width="190">
+  <img src="docs/screenshots/ranked.jpg?v=3" alt="Ranked list with ratings" width="190">
 </p>
 <p align="center">
   <sub>Welcome &middot; Swipe &middot; Compare &middot; Ranked</sub>
@@ -64,9 +64,9 @@ flowchart LR
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
 
 <p align="center">
-  <img src="docs/screenshots/swipe-dark.jpg" alt="Swipe card in dark mode" width="190">
+  <img src="docs/screenshots/swipe-dark.jpg?v=3" alt="Swipe card in dark mode" width="190">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/desktop.jpg" alt="Desktop layout with tabs aligned to the content column" width="420">
+  <img src="docs/screenshots/desktop.jpg?v=3" alt="Desktop layout with tabs aligned to the content column" width="420">
 </p>
 <p align="center">
   <sub>Dark mode &middot; Desktop (tabs line up with the content column)</sub>
