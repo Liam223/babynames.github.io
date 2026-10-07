@@ -22,7 +22,7 @@
   --green: #3E9150;  --green-d: #276633;
   --orange: #EC8A2D; --orange-d: #B1601A;
   --pink: #E8799F;   --pink-d: #B24A71;
-  --on-red: #fff; --on-blue: #fff; --on-green: #fff; --on-yellow: #2D2218; --on-orange: #2D2218;
+  --on-red: #fff; --on-blue: #fff; --on-green: #fff; --on-pink: #2D2218; --on-yellow: #2D2218; --on-orange: #2D2218;
 
   /* meanings (also used as text/outline colours on cream, so a touch darker) */
   --like: #2F7A40; --nope: #C23B30; --love: #A87200;
@@ -44,7 +44,7 @@
     --green: #5BB46C;  --green-d: #256B34;
     --orange: #F0A04D; --orange-d: #8A5217;
     --pink: #F08FB0;   --pink-d: #8C3556;
-    --on-red: #1F1710; --on-blue: #0F1A28; --on-green: #0F2014; --on-yellow: #2D2218; --on-orange: #2D2218;
+    --on-red: #1F1710; --on-blue: #0F1A28; --on-green: #0F2014; --on-pink: #2D2218; --on-yellow: #2D2218; --on-orange: #2D2218;
     --like: #6CC57D; --nope: #FF8077; --love: #F5CB57;
     --shadow: 0 10px 22px rgba(0, 0, 0, .5);
   }
@@ -131,6 +131,14 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .toggle input:checked + .switch { background: var(--green); box-shadow: none; }
 .toggle input:checked + .switch::after { transform: translateX(22px); }
 .toggle input:focus-visible + .switch { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* Boys / Girls / Both pills use the swipe-card colours */
+.seg input[value="boys"] + span { border-color: var(--blue); box-shadow: 0 3px 0 var(--blue); }
+.seg input[value="girls"] + span { border-color: var(--pink); box-shadow: 0 3px 0 var(--pink); }
+.seg input[value="both"] + span { border-color: var(--green); box-shadow: 0 3px 0 var(--green); }
+.seg input[value="boys"]:checked + span { background: var(--blue); color: var(--on-blue); }
+.seg input[value="girls"]:checked + span { background: var(--pink); color: var(--on-pink); }
+.seg input[value="both"]:checked + span { background: var(--green); color: var(--on-green); }
 
 /* alphabet blocks */
 .chips { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 4px; padding-bottom: 3px; }
