@@ -58,6 +58,23 @@ export function save(state) {
 }
 export function flush() { clearTimeout(timer); write(); }
 
+// Ask the browser to treat this site's storage as persistent, so it isn't cleared when space is low.
+// Returns true (protected), false (best effort only), or null (not supported / blocked).
+export async function requestPersistence() {
+  try {
+    if (!navigator.storage || !navigator.storage.persist) return null;
+    if (await navigator.storage.persisted()) return true;
+    return await navigator.storage.persist();
+  } catch { return null; }
+}
+
+export async function persistenceStatus() {
+  try {
+    if (!navigator.storage || !navigator.storage.persisted) return null;
+    return await navigator.storage.persisted();
+  } catch { return null; }
+}
+
 export function exportJSON(state) {
   return JSON.stringify({ app: 'babynames', exportedAt: new Date().toISOString(), state }, null, 1);
 }

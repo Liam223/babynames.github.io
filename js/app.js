@@ -1,4 +1,4 @@
-import { load, save, flush, defaultState, exportJSON, parseImport, HISTORY_CAP, storageOk } from './storage.js';
+import { load, save, flush, defaultState, exportJSON, parseImport, HISTORY_CAP, storageOk, requestPersistence, persistenceStatus } from './storage.js';
 import { loadSex, sexesFor, SEXES, linkUnisex, isPrimary, trend, standout, nameKey, COUNTRY_SHORT } from './names.js';
 import { icon, hydrateIcons } from './icons.js';
 import { CONFIG, startRating, applyResult, pickPair, pairKey } from './elo.js';
@@ -307,6 +307,7 @@ function decide(dir) {
   state.history.push({ s: name.sex, k: name.key, d: dir, src, m: both ? 1 : 0 });
   if (state.history.length > HISTORY_CAP) state.history.splice(0, state.history.length - HISTORY_CAP);
   state.settings.hintSeen = true;
+  askPersistence();
   announce(`${name.name}: ${dir === 'no' ? 'no thanks' : dir === 'like' ? 'liked' : 'loved'}`);
   if (dir === 'love') burst();
   renderSwipe();
@@ -582,7 +583,23 @@ function removeFromRank(side) {
 }
 
 /* ---------- settings ---------- */
+let persistAsked = false;
+// Once you've actually used the app, ask the browser to protect the saved data (once per visit).
+function askPersistence() {
+  if (persistAsked) return;
+  persistAsked = true;
+  requestPersistence().then(() => { if (screen === 'settings') renderStorageNote(); });
+}
+
+async function renderStorageNote() {
+  const p = await persistenceStatus();
+  $('#storage-note').textContent = p === true
+    ? 'Your browser has marked this data as protected, so it won’t be cleared automatically.'
+    : 'Your browser may clear this data if space runs low or after a long time unused. Export a backup now and then.';
+}
+
 function renderSettings() {
+  renderStorageNote();
   document.body.dataset.sex = 'both';
   $('#nickname').value = state.settings.nickname || '';
   $('#storage-warn').hidden = storageOk;
