@@ -9,7 +9,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : [['list']],
+  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }], ['./e2e/summary-reporter.js']] : [['list']],
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     ...devices['Pixel 7'],

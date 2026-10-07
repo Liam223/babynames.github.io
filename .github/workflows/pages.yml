@@ -27,11 +27,24 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: npm                       # keeps npm's download cache between runs (keyed on package-lock.json)
       - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - id: browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright     # the downloaded Chromium, keyed on the Playwright version
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - name: Install Chromium
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Install Chromium's system packages (browser came from the cache)
+        if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
       - run: npx playwright test
       - uses: actions/upload-artifact@v7
         if: failure()
