@@ -378,8 +378,10 @@ function renderList() {
     $('.n', b).textContent = fmt(listRows(b.dataset.tab).length);
   }
   $$('input[name=listsex]').forEach((i) => { i.checked = i.value === listSex; });
-  $('#sort-toggle').hidden = listTab === 'ranked';
-  $('#sort-toggle .lbl').textContent = listSort === 'az' ? 'A–Z' : 'Popular';
+  // Always in the row (so the pills never resize); on Ranked the order is fixed, so it just says so.
+  const sortBtn = $('#sort-toggle');
+  sortBtn.disabled = listTab === 'ranked';
+  $('.lbl', sortBtn).textContent = listTab === 'ranked' ? 'Rating' : listSort === 'az' ? 'A–Z' : 'Popular';
   const rows = listRows(listTab);
   if (!rows.length) {
     const li = document.createElement('li');

@@ -393,3 +393,6 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
   .top { max-width: 920px; }
   .tab-label { white-space: nowrap; }
 }
+
+.sortbtn { width: 118px; justify-content: center; }
+.sortbtn:disabled { color: var(--muted); border-style: dashed; box-shadow: none; cursor: default; transform: none; }
