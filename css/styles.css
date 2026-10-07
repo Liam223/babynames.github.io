@@ -323,3 +323,14 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .keys .like { background: var(--green); color: var(--on-green); }
 .keys .love { background: var(--yellow); color: var(--on-yellow); }
 .btn.coach-btn { width: 100%; min-height: 48px; background: var(--blue); color: var(--on-blue); border-color: var(--blue); box-shadow: 0 3px 0 var(--blue-d); }
+
+/* Starting letter: looks like a control (block row with a chevron) */
+details.letters { border-top: 0; padding-top: 0; }
+details.letters > summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 52px; margin-bottom: 0; padding: 0 16px; border: 2px solid var(--edge); border-radius: 14px; background: var(--surface); box-shadow: 0 2px 0 var(--edge); }
+details.letters > summary::-webkit-details-marker { display: none; }
+details.letters > summary:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--edge); }
+details.letters #letters-count { margin-left: auto; font-weight: 700; }
+details.letters > summary::after { content: ""; width: 10px; height: 10px; margin: -4px 2px 0 6px; border-right: 3px solid var(--blue); border-bottom: 3px solid var(--blue); transform: rotate(45deg); transition: transform .15s; }
+details.letters[open] > summary::after { margin-top: 4px; transform: rotate(-135deg); }
+details.letters[open] > summary { border-color: var(--blue); box-shadow: 0 2px 0 var(--blue); }
+details.letters .chips { margin-top: 12px; }
