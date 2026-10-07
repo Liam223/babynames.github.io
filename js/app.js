@@ -832,6 +832,7 @@ function storyOf(vals, years) {
   const before = n >= 13 ? average(vals.slice(n - 13, n - 10)) : average(vals.slice(0, 3));
   let trend;
   if (!before && !recent) trend = { label: 'No trend', arrow: '–', cls: 'steady', caption: 'too few births' };
+  else if (!before && vals.slice(0, Math.max(0, n - 13)).some(v => v > 0)) trend = { label: 'Patchy', arrow: '~', cls: 'steady', caption: 'too few births to show a trend' };
   else if (!before) trend = { label: 'New', arrow: '✦', cls: 'rising', caption: 'not listed a decade ago' };
   else {
     const ratio = recent / before;
