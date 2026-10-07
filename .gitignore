@@ -3,3 +3,6 @@ data-src/*.xlsx
 data-src/*.csv
 data-src/*.zip
 __pycache__/
+node_modules/
+playwright-report/
+test-results/

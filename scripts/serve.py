@@ -8,4 +8,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map,
                       ".js": "text/javascript", ".webmanifest": "application/manifest+json"}
 
-http.server.test(HandlerClass=Handler, port=int(sys.argv[1]) if len(sys.argv) > 1 else 8080, bind="127.0.0.1")
+class Server(http.server.ThreadingHTTPServer):
+    request_queue_size = 128     # a browser opens many connections at once; the default of 5 refuses some on Windows
+
+http.server.test(HandlerClass=Handler, ServerClass=Server, port=int(sys.argv[1]) if len(sys.argv) > 1 else 8080, bind="127.0.0.1")

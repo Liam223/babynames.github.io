@@ -16,12 +16,13 @@
   --edge: #D3C7AE;          /* soft bottom edge on blocks */
   --wood: #EFE6D2;
 
-  --red: #D5473B;    --red-d: #9F2D24;
+  --red: #CF4439;    --red-d: #9F2D24;      /* red and green are set so white text on them reaches 4.5:1 */
   --blue: #2F6DB5;   --blue-d: #1D4C84;
   --yellow: #F3C13A; --yellow-d: #B8861A;
-  --green: #3E9150;  --green-d: #276633;
+  --green: #36834A;  --green-d: #276633;
   --orange: #EC8A2D; --orange-d: #B1601A;
   --pink: #E8799F;   --pink-d: #B24A71;
+  --tile: rgb(0 0 0 / 18%);   /* a slightly different shade of a coloured block, for tiles inside it */
   --on-red: #fff; --on-blue: #fff; --on-green: #fff; --on-pink: #2D2218; --on-yellow: #2D2218; --on-orange: #2D2218;
 
   /* meanings (also used as text/outline colours on cream, so a touch darker) */
@@ -46,6 +47,7 @@
     --pink: #F08FB0;   --pink-d: #8C3556;
     --on-red: #1F1710; --on-blue: #0F1A28; --on-green: #0F2014; --on-pink: #2D2218; --on-yellow: #2D2218; --on-orange: #2D2218;
     --like: #6CC57D; --nope: #FF8077; --love: #F5CB57;
+    --tile: rgb(255 255 255 / 22%);
     --shadow: 0 10px 22px rgba(0, 0, 0, .5);
   }
 }
@@ -165,9 +167,9 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .resume { background: var(--green); color: var(--on-green); border-radius: 18px; padding: 16px; margin: 0 0 18px; box-shadow: 0 4px 0 var(--green-d); }
 .resume-title { font: 700 1.4rem var(--font-display); margin: 0 0 12px; }
 .resume-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-.resume-stats div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: color-mix(in srgb, var(--on-green) 16%, transparent); }
+.resume-stats div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: var(--tile); }
 .resume-stats b { font: 700 1.5rem/1.1 var(--font-display); }
-.resume-stats span { font-size: .8rem; font-weight: 700; opacity: .9; }
+.resume-stats span { font-size: .8rem; font-weight: 700; }
 .btn.resume-btn { width: 100%; min-height: 54px; font-size: 1.1rem; background: var(--surface); color: var(--ink); border-color: var(--surface); box-shadow: 0 3px 0 var(--green-d); }
 .resume-btn .icon { color: var(--green); }
 .adjust { margin: 0 0 8px; font-weight: 700; }

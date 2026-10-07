@@ -22,13 +22,13 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/welcome.jpg?v=3" alt="Welcome screen with resume panel and filters" width="190">
+  <img src="docs/screenshots/welcome.jpg?v=ce931d58" alt="Welcome screen with resume panel and filters" width="190">
   &nbsp;
-  <img src="docs/screenshots/swipe.jpg?v=3" alt="Swipe card for the name Aoife with rank, trend and country ranks" width="190">
+  <img src="docs/screenshots/swipe.jpg?v=a80b630e" alt="Swipe card for the name Aoife with rank, trend and country ranks" width="190">
   &nbsp;
-  <img src="docs/screenshots/compare.jpg?v=3" alt="Head-to-head comparison of two names" width="190">
+  <img src="docs/screenshots/compare.jpg?v=b9d0c917" alt="Head-to-head comparison of two names" width="190">
   &nbsp;
-  <img src="docs/screenshots/ranked.jpg?v=3" alt="Ranked list with ratings" width="190">
+  <img src="docs/screenshots/ranked.jpg?v=60cadb4d" alt="Ranked list with ratings" width="190">
 </p>
 <p align="center">
   <sub>Welcome &middot; Swipe &middot; Compare &middot; Ranked</sub>
@@ -64,9 +64,9 @@ flowchart LR
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
 
 <p align="center">
-  <img src="docs/screenshots/swipe-dark.jpg?v=3" alt="Swipe card in dark mode" width="190">
+  <img src="docs/screenshots/swipe-dark.jpg?v=5e7dfb27" alt="Swipe card in dark mode" width="190">
   &nbsp;&nbsp;
-  <img src="docs/screenshots/desktop.jpg?v=3" alt="Desktop layout with tabs aligned to the content column" width="420">
+  <img src="docs/screenshots/desktop.jpg?v=1e60455b" alt="Desktop layout with tabs aligned to the content column" width="420">
 </p>
 <p align="center">
   <sub>Dark mode &middot; Desktop (tabs line up with the content column)</sub>
@@ -76,7 +76,7 @@ flowchart LR
 
 ## Run it locally
 
-No build step and no dependencies for the app itself.
+No build step and no dependencies for the app itself (the tests have dev dependencies; see below).
 
 ```bash
 python scripts/serve.py        # http://localhost:8080
@@ -94,7 +94,23 @@ The tests use Node's built-in runner (Node 22 or newer, no packages to install):
 npm test
 ```
 
-They cover the rating maths, trend and "story" rules, the deck's filters and ordering, saved-state migration and backup sanitising, and the generated data files (shape, unique names, a history entry for every name). The code under test is kept free of page access (`series.js`, `queue.js`, `elo.js`, `names.js`, `storage.js`) so it can run without a browser.
+`npm test` covers the rating maths, trend and "story" rules, the deck's filters and ordering, saved-state migration and backup sanitising, and the generated data files (shape, unique names, a history entry for every name). The code under test is kept free of page access (`series.js`, `queue.js`, `elo.js`, `names.js`, `storage.js`) so it can run without a browser.
+
+**Browser tests** use [Playwright](https://playwright.dev) in a phone-sized Chromium (`npm install`, then `npx playwright install chromium` once):
+
+```bash
+npm run e2e
+```
+
+They click through the real app: swiping (buttons, keyboard and a drag), undo, Compare, My list, the details screen and its history chart, backup export/import/reset, and reloads keeping your choices. Each test fails on any console error. A second group runs [axe](https://github.com/dequelabs/axe-core) accessibility checks on every screen in light and dark mode. In CI these run as their own job, so they report separately from the unit tests that gate the deploy.
+
+### Retaking the README screenshots
+
+```bash
+npm run screenshots
+```
+
+This opens the app with a fixed demo state, saves the six images in `docs/screenshots/`, and updates the `?v=` tags in this README (a short hash of each image, so a tag only changes when its picture does). Run it after a visual change and commit the result.
 
 ### Deploying
 
@@ -136,12 +152,14 @@ scripts/
   build-names.py        Builds data/boys.json and girls.json from data-src/
   build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
   build-history.py      Builds data/history/*.json from the raw files in data-src/ (offline)
+  screenshots.mjs       Retakes the README screenshots and refreshes their tags (`npm run screenshots`)
   serve.py              Local static server
 data-src/
   irish-names.txt       Curated Irish-origin names (committed)
   irish-review.txt      Names tagged by pattern only / left untagged as uncertain
   respellings.txt       Hand-written, approximate, UNVERIFIED pronunciation respellings (fallback only)
-test/                   Node tests (`npm test`)
+test/                   Node unit tests (`npm test`)
+e2e/                    Playwright browser tests (`npm run e2e`)
 package.json            Test and serve scripts (no dependencies)
 docs/screenshots/       Images used in this README
 BRIEF.md                The original build brief
@@ -356,7 +374,7 @@ Fonts: system UI for controls and [Fraunces](https://github.com/undercasetype/Fr
 
 **Out of scope for now:** accounts, a backend, real-time sync, name meanings and pronunciations. See [`BRIEF.md`](BRIEF.md) for the original requirements.
 
-Automated tests: `npm test` (see [Tests](#tests)). The screens themselves are checked by hand.
+Automated tests: unit tests (`npm test`), browser and accessibility tests (`npm run e2e`), run on every push by GitHub Actions (see [Tests](#tests)).
 
 ---
 

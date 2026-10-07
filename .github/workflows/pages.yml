@@ -18,6 +18,30 @@ jobs:
           node-version: 24
       - run: npm run test:ci
 
+  # Browser tests: the real app in Chromium on a phone-sized screen (plus accessibility checks).
+  # Reported separately, so a flaky browser test can't hold up the site.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   deploy:
     # Only publish from main, and only once the tests have passed.
     needs: test
