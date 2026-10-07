@@ -1,13 +1,37 @@
 # Tagged Irish by pattern heuristic only (not in curated list) - please review
 girls	Siobhain  [classic]	769
+girls	Deirbhile  [classic]	183
+girls	Caoilainn  [classic]	142
 boys	Ruadh	135
 girls	Naoimh  [classic]	134
+boys	Aodán  [classic]	124
 girls	Meadbh  [classic]	122
+girls	Aibhe  [classic]	112
 girls	Dearbhaile  [classic]	106
+boys	Padhraic  [classic]	81
+girls	Aobha  [classic]	76
+girls	Aoise  [classic]	71
 boys	Ólan	60
+girls	Céilí  [classic]	52
+boys	Padhraig  [classic]	51
+girls	Saidbh  [classic]	50
+girls	Naimh  [classic]	49
+girls	Aibhín  [classic]	46
+girls	Aobh  [classic]	44
+girls	Naomh  [classic]	43
+girls	Aoifa  [classic]	43
+girls	Labhaoise  [classic]	43
+girls	Caoilfhinn  [classic]	41
+girls	Féile  [classic]	38
 boys	Séadna	37
 girls	Réiltín	37
+girls	Éinín  [classic]	36
 girls	Réidín	36
+girls	Saidhbh  [classic]	35
+girls	Maedbh  [classic]	34
+girls	Eibhlis  [classic]	34
+girls	Ceoladh  [classic]	33
+girls	Deirbhle  [classic]	32
 boys	Rí	30
 girls	Mollaí	26
 boys	Séadhna	24
@@ -74,6 +98,8 @@ girls	Lorna	96
 boys	Eugene	84
 girls	Dylan	84
 girls	Radha	72
+boys	Sean-Paul	48
+girls	Kiva	45
 girls	Shona	44
 girls	Mary-Kate	37
 girls	Catriona	30

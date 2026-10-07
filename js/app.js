@@ -24,7 +24,7 @@ const persist = () => { save(state); updateTabs(); };
 const announce = (msg) => { $('#live').textContent = ''; setTimeout(() => { $('#live').textContent = msg; }, 20); };
 const fmt = (n) => n.toLocaleString('en-GB');
 // One-line popularity description used in lists and the compare screen.
-const statLine = (n) => (n.classic ? `Classic · peaked ${n.classic.peak}` : `#${fmt(n.rank)} · ${fmt(n.count)} babies`);
+const statLine = (n) => (n.classic ? `${n.classic.peak <= 2005 ? 'Classic' : 'Past favourite'} · peaked ${n.classic.peak}` : `#${fmt(n.rank)} · ${fmt(n.count)} babies`);
 const merged = () => state.settings.sex === 'both';   // boys and girls mixed: names used for both appear once
 
 /* ---------- filtering & ordering ---------- */
@@ -167,7 +167,7 @@ function show(name, opts = {}) {
 
 const POP_HELP = {
   gems: 'Modern names outside the top 500.',
-  retro: 'Classics: names that were popular years ago but are rare today. Ranked after all the modern names.',
+  retro: 'Names that were popular in the past but are rare today. Ranked after all the modern names.',
 };
 
 const SEX_HELP = {
@@ -222,7 +222,8 @@ function cardEl(n) {
   const babies = n.count + (both ? n.alt.count : 0);
   const sexWord = (x) => (x.sex === 'boys' ? 'Boys' : 'Girls');
   const cl = n.classic;
-  const rankText = cl ? 'A classic name' : both
+  const old = cl && cl.peak <= 2005;      // peaked long ago = a classic; peaked more recently = a past favourite
+  const rankText = cl ? (old ? 'A classic name' : 'A past favourite') : both
     ? `${sexWord(n)} #${fmt(n.rank)} · ${sexWord(n.alt)} #${fmt(n.alt.rank)}`
     : n.rank <= 1000 ? `#${fmt(n.rank)} in UK & Ireland` : n.rank <= 3000 ? `Uncommon · #${fmt(n.rank)}` : 'Rare';
   const tr = trend(n, meta);
@@ -267,7 +268,7 @@ function cardEl(n) {
     b.append(' ', t);
   }
   if (so) $('.standout', el).textContent = `Especially popular in ${so.country}`;
-  else if (cl) $('.standout', el).textContent = 'Classic · rare today';
+  else if (cl) $('.standout', el).textContent = old ? 'Classic · rare today' : 'Rare today';
   $('.variants', el).textContent = n.variants.length ? `also: ${n.variants.slice(0, 3).join(', ')}` : '';
   return el;
 }

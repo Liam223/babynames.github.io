@@ -16,7 +16,9 @@ Classic names (HISTORY windows: ONS 1996+, NISRA 1997+, NRS 1974+, CSO 1964+) ar
 recent-births rule but are kept because either
   - they are on the curated Irish list and have at least IRISH_HISTORY_MIN births across all years, or
   - they peaked by CLASSIC_PEAK_BY, have at least CLASSIC_MIN_TOTAL births across all years, and are
-    rare today (under MIN_TOTAL recent births).
+    rare today (under MIN_TOTAL recent births), or
+  - they have at least BROAD_MIN_TOTAL births across all years, in at least BROAD_MIN_YEARS separate
+    years, and are rare today.
 They are ranked after every modern name, so existing ranks never change.
 """
 import csv
@@ -42,6 +44,8 @@ HISTORY = {"ONS": range(1996, 2026), "NISRA": range(1997, 2026), "NRS": range(19
 CLASSIC_PEAK_BY = 2005         # a classic must have peaked in or before this year
 CLASSIC_MIN_TOTAL = 100        # ... and have at least this many births across all years
 IRISH_HISTORY_MIN = 5          # curated Irish-list names qualify with this many births across all years
+BROAD_MIN_TOTAL = 30           # any name with this many births across all years ...
+BROAD_MIN_YEARS = 3            # ... in at least this many separate years also qualifies (keeps out one-off spellings)
 
 # An accented spelling is shown as the main card if it holds at least this share
 # of the group's total. NRS, NISRA and (mostly) ONS strip accents, so accented
@@ -212,6 +216,8 @@ def build(sex, irish, uncertain, review):
                 pass
             elif peak_year and peak_year <= CLASSIC_PEAK_BY and full >= CLASSIC_MIN_TOTAL and recent < MIN_TOTAL:
                 pass
+            elif full >= BROAD_MIN_TOTAL and sum(1 for v in g["allyrs"].values() if v > 0) >= BROAD_MIN_YEARS and recent < MIN_TOTAL:
+                pass
             else:
                 continue
             history = [peak_year, peak_count, full]
@@ -247,8 +253,9 @@ def build(sex, irish, uncertain, review):
     names = []
     for i, (d, t, _k, f, v, y, c, r, hist, _full) in enumerate(modern + classic):
         if hist:
-            # classic names carry no per-year or per-country arrays (cards show peak info instead); keeps files small
-            names.append([d, t, i + 1, f, v, [], [], [], hist])      # hist = [peakYear, peakCount, totalAllYears]
+            # classic names carry no per-year or per-country arrays (cards show peak info instead), so they use a
+            # shorter 6-element tuple; keeps the files small
+            names.append([d, t, i + 1, f, v, hist])                  # hist = [peakYear, peakCount, totalAllYears]
         else:
             names.append([d, t, i + 1, f, v, y, c, r])
     meta = {"yearTotals": year_totals, "countrySizes": country_size, "modern": len(modern), "classic": len(classic)}
@@ -267,7 +274,7 @@ def main():
         names, meta = build(sex, irish, uncertain, review)
         path = OUT / f"{sex}.json"
         # name tuple: [display, recentTotal, rank, irish(0/1), variants[], perYear[5], perCountry[4], countryRank[4]]
-        #             + [peakYear, peakCount, totalAllYears] for classic (historical-only) names
+        # classic (historical-only) names use a short tuple: [display, recentTotal, rank, irish, variants[], [peakYear, peakCount, totalAllYears]]
         out = {"version": VERSION, "sources": sources, "history": history, "years": list(YEARS), "countries": COUNTRIES,
                **meta, "names": names}
         path.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

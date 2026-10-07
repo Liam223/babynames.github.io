@@ -57,7 +57,7 @@ flowchart LR
 
 - **Names with context.** Each card shows the overall rank, babies given the name in 2021&ndash;25, a rising/falling trend with a sparkline, the rank in England &amp; Wales, Scotland, Northern Ireland and the Republic of Ireland, and a flag when one country stands out.
 - **Strong Irish coverage.** Names are combined from four official sources, with a curated list plus a pattern check to tag Irish names (&#9752;&#65039;). Oisín and Oisin are one card; Aoife and Eva stay separate.
-- **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band (including **Retro**: classics that were popular years ago but are rare today), and starting letter.
+- **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band (including **Retro**: older names that were popular in the past but are rare today), and starting letter.
 - **Honest ranking.** Boys and girls are compared in separate pools, so a boy is never pitted against a girl. A unisex name has its own rating in each pool.
 - **Private by design.** Choices live in `localStorage`; export and import a backup to move to a new phone.
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
@@ -193,16 +193,19 @@ What the build does:
 Official sources hide any name given to fewer than 3 babies in a year, so there is no way to get *more names per year*. The only way to widen the list is a longer window. The build also reads each source's full history (ONS 1996+, NISRA 1997+, NRS 1974+, CSO 1964+) and keeps a name that fails the recent rule as a **classic** if either:
 
 - it is on the curated Irish list and has **5+ births across all years** (`IRISH_HISTORY_MIN`), or
-- it **peaked in 2005 or earlier** (`CLASSIC_PEAK_BY`), has **100+ births across all years** (`CLASSIC_MIN_TOTAL`), and is rare today (under 15 recent births).
+- it **peaked in 2005 or earlier** (`CLASSIC_PEAK_BY`), has **100+ births across all years** (`CLASSIC_MIN_TOTAL`), and is rare today (under 15 recent births), or
+- it has **30+ births across all years in at least 3 separate years** (`BROAD_MIN_TOTAL`, `BROAD_MIN_YEARS`) and is rare today. The year rule keeps out one-off spellings.
 
-Classics are **ranked after every modern name**, so existing ranks, the Top 100 / Top 500 filters and anything already saved are unaffected. They show a *Classic* card with the peak year instead of rank and country tiles, and appear under the *Retro* popularity filter. All the thresholds are constants at the top of `scripts/build-names.py`.
+Classics are **ranked after every modern name**, so existing ranks, the Top 100 / Top 500 filters and anything already saved are unaffected. They show a card with the peak year instead of rank and country tiles (*A classic name* if they peaked by 2005, *A past favourite* if later), and appear under the *Retro* popularity filter. All the thresholds are constants at the top of `scripts/build-names.py`.
 
 Current output:
 
 | | Modern | Classic | Total | Irish-tagged | Size (gzipped) |
 |---|---|---|---|---|---|
-| Boys | 5,015 | 422 | **5,437** | 253 | 339 KB (95 KB) |
-| Girls | 5,799 | 882 | **6,681** | 249 | 412 KB (111 KB) |
+| Boys | 5,015 | 2,680 | **7,695** | 256 | 415 KB (118 KB) |
+| Girls | 5,799 | 4,063 | **9,862** | 270 | 518 KB (143 KB) |
+
+(The girls' file is above the original ~400 KB target, but it is only about 143 KB over the wire.)
 
 The modern names are byte-for-byte identical to the previous build (same entries, same ranks); classics are only appended.
 
@@ -220,8 +223,8 @@ The modern names are byte-for-byte identical to the previous build (same entries
   "names": [
     // [display, recentTotal, rank, irish(0/1), variants[], perYear[5], perCountry[4], countryRank[4]]
     ["Oisín", 2685, 129, 1, ["Oisin", "Óisín"], [553, 560, 534, 489, 549], [364, 71, 557, 1693], [535, 271, 8, 5]],
-    // classic (historical-only) names: empty arrays, plus [peakYear, peakCount, totalAllYears]
-    ["Graeme", 12, 5016, 0, [], [], [], [], [1979, 450, 5200]]
+    // classic (historical-only) names use a short 6-element tuple: [..., variants[], [peakYear, peakCount, totalAllYears]]
+    ["Graeme", 12, 5016, 0, [], [1979, 450, 5200]]
   ]
 }
 ```

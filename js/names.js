@@ -18,10 +18,11 @@ export function loadSex(sex) {
       .then((d) => {
         const list = d.names.map((t) => ({
           sex, name: t[0], count: t[1], rank: t[2], irish: !!t[3], variants: t[4] || [], key: nameKey(t[0]),
-          years: t[5] || [], byCountry: t[6] || [], countryRank: t[7] || [],
+          // modern names have 8 elements; classic (historical-only) names have 6, with the peak info last
+          years: t.length > 6 ? t[5] : [], byCountry: t.length > 6 ? t[6] : [], countryRank: t.length > 6 ? t[7] : [],
           alt: null,       // the same name in the other sex's list (set by linkUnisex)
           // classic = historical-only name (not enough recent births): { peak: year, peakCount, full: births across all years }
-          classic: t[8] ? { peak: t[8][0], peakCount: t[8][1], full: t[8][2] } : null,
+          classic: t.length === 6 ? { peak: t[5][0], peakCount: t[5][1], full: t[5][2] } : null,
         }));
         return {
           version: d.version, sources: d.sources, years: d.years || [], countries: d.countries || [],
