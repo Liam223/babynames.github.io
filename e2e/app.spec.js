@@ -10,6 +10,22 @@ test.beforeEach(({ page }) => {
 });
 test.afterEach(() => { expect(problems).toEqual([]); });
 
+test('the content security policy blocks injected scripts and still lets the app run', async ({ page }) => {
+  await openApp(page, null);
+  await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(1);
+  const ran = await page.evaluate(() => {
+    const s = document.createElement('script');
+    s.textContent = 'window.__injected = true';
+    document.head.append(s);
+    return window.__injected === true;
+  });
+  expect(ran).toBe(false);
+  expect(problems.some((p) => /Content Security Policy/.test(p))).toBe(true);        // the browser reported the block
+  problems = [];                                                                       // expected, so don't fail the test for it
+  await page.locator('#btn-start').click();
+  await expect(page.locator('#stage .card:not(.peek) .name')).toBeVisible();          // and the app itself is unaffected
+});
+
 test('a new visitor sees the welcome screen and can start swiping', async ({ page }) => {
   await openApp(page, null);
   await expect(page).toHaveTitle('Nameblocks');

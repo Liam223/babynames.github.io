@@ -3,7 +3,7 @@
 import http.server, mimetypes, os, sys
 mimetypes.add_type("text/javascript", ".js")
 mimetypes.add_type("application/manifest+json", ".webmanifest")
-os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", os.environ.get("SERVE_ROOT", "")))   # SERVE_ROOT=_site serves the published copy
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map,
                       ".js": "text/javascript", ".webmanifest": "application/manifest+json"}

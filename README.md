@@ -115,7 +115,7 @@ This opens the app with a fixed demo state, saves the six images in `docs/screen
 
 ### Deploying
 
-Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml): the unit tests first, then, only if they pass, a deploy of the repository root to GitHub Pages. The browser tests run as a separate job and don't gate the deploy. Pull requests run the tests but never deploy.
+Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml): the unit tests first, then, only if they pass, a deploy to GitHub Pages of just the files the app needs (`index.html`, `css/`, `js/`, `data/`, `fonts/`, `icons/`), assembled by `scripts/assemble-site.mjs`, which also fails the build if the page, stylesheet or a script refers to a file that isn't included. The browser tests run as a separate job and don't gate the deploy. Pull requests run the tests but never deploy.
 
 One-off setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. (The older "Deploy from a branch" mode would build the site a second time on every push.)
 
@@ -157,6 +157,7 @@ scripts/
   build-names.py        Builds data/boys.json and girls.json from data-src/
   build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
   build-history.py      Builds data/history/*.json from the raw files in data-src/ (offline)
+  assemble-site.mjs     Copies the published files into _site/ and checks every reference resolves (used by the deploy job)
   screenshots.mjs       Retakes the README screenshots and refreshes their tags (`npm run screenshots`)
   gh-test-reporter.mjs  Test reporter for Actions: results table and failure annotations
   serve.py              Local static server
@@ -348,6 +349,7 @@ All state is one JSON string in `localStorage` under the key **`bn:v1:state`**. 
 - The app asks the browser to mark storage as persistent after your first swipe, and says in Settings whether that was granted.
 - **Export / import** a JSON backup from Settings to move to a new device.
 - The data is plain text on your device. It is not sent anywhere, and the app loads no third-party scripts.
+- A **Content Security Policy** (a `<meta>` tag in `index.html`) lets the page load only its own scripts, styles, fonts and data, and blocks inline scripts, so a future bug can't be turned into script injection. A browser test checks that an injected script is blocked. HTML built from strings escapes anything that isn't a literal in the code, and imported backups are sanitised on load.
 
 > Storage belongs to the *origin* (`liam223.github.io`), so other project sites under the same GitHub account share it. The prefixed key avoids collisions, but keep that in mind if you add other projects. On iPhone, Safari may clear unused site storage after about a week; export a backup occasionally.
 
