@@ -16,6 +16,7 @@ export function defaultState() {
     queue: { seed: Math.floor(Math.random() * 2 ** 31), pos: 0 },
     priority: [],                          // "sex:key" names to show first (from share links)
     history: [],                           // [{ s, k, d, src }]
+    dataVersion: null,                     // version of the name data this state last saw (deck position resets when it changes)
     compared: 0,                           // legacy total (kept so old saves load)
     comparedBy: { boys: 0, girls: 0 },     // comparisons made in each pool
   };

@@ -57,7 +57,7 @@ flowchart LR
 
 - **Names with context.** Each card shows the overall rank, babies given the name in 2021&ndash;25, a rising/falling trend with a sparkline, the rank in England &amp; Wales, Scotland, Northern Ireland and the Republic of Ireland, and a flag when one country stands out.
 - **Strong Irish coverage.** Names are combined from four official sources, with a curated list plus a pattern check to tag Irish names (&#9752;&#65039;). Oisín and Oisin are one card; Aoife and Eva stay separate.
-- **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band, and starting letter.
+- **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band (including **Retro**: classics that were popular years ago but are rare today), and starting letter.
 - **Honest ranking.** Boys and girls are compared in separate pools, so a boy is never pitted against a girl. A unisex name has its own rating in each pool.
 - **Private by design.** Choices live in `localStorage`; export and import a backup to move to a new phone.
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
@@ -159,7 +159,7 @@ After each vote, with `E` the expected score from the rating gap (`1 / (1 + 10^(
 
 ## The name data
 
-Counts come from four official sources, combined for the last five years (2021&ndash;2025):
+Counts come from four official sources. **Modern names** use the last five years (2021&ndash;2025); a longer history is used only to find **classic** names (see below).
 
 | Source | Coverage | Licence |
 |---|---|---|
@@ -182,27 +182,46 @@ When a new year is published, update the URLs in `fetch-data.py` and `YEARS` / `
 
 What the build does:
 
-1. Sums counts across the four sources for the last five years.
+1. Sums counts across the four sources for the last five years. These drive every count, rank, trend and country rank, and the choice of spelling.
 2. **Groups spellings that differ only by accents or case** using a stripped, lowercased key. The accented spelling is shown if it holds at least 15% of the group's total (the UK sources strip accents, so accented forms are undercounted). Genuinely different spellings stay separate.
-3. Drops names with fewer than **15** combined births (`MIN_TOTAL`); names on the curated Irish list keep a lower floor of **5** (`IRISH_MIN_TOTAL`).
+3. Drops names with fewer than **15** births in 2021&ndash;25 (`MIN_TOTAL`); names on the curated Irish list keep a lower floor of **5** (`IRISH_MIN_TOTAL`), **unless they qualify as classics (below)**.
 4. Ranks within each sex, and computes per-year counts and per-country counts and ranks.
 5. Tags Irish-origin names from `data-src/irish-names.txt` (lines marked `# ?` are uncertain and not tagged), plus a pattern check (`bh`, `dh`, `mh`, `aoi`, fadas) applied to names that are mostly found in the CSO data.
 
-Current output: **5,015** boys' names and **5,799** girls' names, with **205** and **194** tagged Irish. Each file is about 330&ndash;380 KB (roughly 100 KB gzipped).
+#### Classic names
+
+Official sources hide any name given to fewer than 3 babies in a year, so there is no way to get *more names per year*. The only way to widen the list is a longer window. The build also reads each source's full history (ONS 1996+, NISRA 1997+, NRS 1974+, CSO 1964+) and keeps a name that fails the recent rule as a **classic** if either:
+
+- it is on the curated Irish list and has **5+ births across all years** (`IRISH_HISTORY_MIN`), or
+- it **peaked in 2005 or earlier** (`CLASSIC_PEAK_BY`), has **100+ births across all years** (`CLASSIC_MIN_TOTAL`), and is rare today (under 15 recent births).
+
+Classics are **ranked after every modern name**, so existing ranks, the Top 100 / Top 500 filters and anything already saved are unaffected. They show a *Classic* card with the peak year instead of rank and country tiles, and appear under the *Retro* popularity filter. All the thresholds are constants at the top of `scripts/build-names.py`.
+
+Current output:
+
+| | Modern | Classic | Total | Irish-tagged | Size (gzipped) |
+|---|---|---|---|---|---|
+| Boys | 5,015 | 422 | **5,437** | 253 | 339 KB (95 KB) |
+| Girls | 5,799 | 882 | **6,681** | 249 | 412 KB (111 KB) |
+
+The modern names are byte-for-byte identical to the previous build (same entries, same ranks); classics are only appended.
 
 ### File format
 
 ```jsonc
 {
-  "version": "2026-10",
+  "version": "2026-10-2",
   "sources": ["ONS 2021–2025", "NRS 2021–2025", "NISRA 2021–2025", "CSO 2021–2025"],
   "years": [2021, 2022, 2023, 2024, 2025],
   "countries": ["England & Wales", "Scotland", "Northern Ireland", "Republic of Ireland"],
+  "history": {"ONS": [1996, 2025], "NISRA": [1997, 2025], "NRS": [1974, 2025], "CSO": [1964, 2025]},
   "yearTotals": [352978, 340491, 329841, 330119, 323584],   // all babies of this sex, per year
   "countrySizes": [10387, 1471, 813, 1575],                  // distinct names per country
   "names": [
-    // [display, total, rank, irish(0/1), variants[], perYear[5], perCountry[4], countryRank[4]]
-    ["Oisín", 2685, 129, 1, ["Oisin", "Óisín"], [553, 560, 534, 489, 549], [364, 71, 557, 1693], [535, 271, 8, 5]]
+    // [display, recentTotal, rank, irish(0/1), variants[], perYear[5], perCountry[4], countryRank[4]]
+    ["Oisín", 2685, 129, 1, ["Oisin", "Óisín"], [553, 560, 534, 489, 549], [364, 71, 557, 1693], [535, 271, 8, 5]],
+    // classic (historical-only) names: empty arrays, plus [peakYear, peakCount, totalAllYears]
+    ["Graeme", 12, 5016, 0, [], [], [], [], [1979, 450, 5200]]
   ]
 }
 ```

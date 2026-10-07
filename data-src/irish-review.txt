@@ -1,5 +1,9 @@
 # Tagged Irish by pattern heuristic only (not in curated list) - please review
+girls	Siobhain  [classic]	769
 boys	Ruadh	135
+girls	Naoimh  [classic]	134
+girls	Meadbh  [classic]	122
+girls	Dearbhaile  [classic]	106
 boys	Ólan	60
 boys	Séadna	37
 girls	Réiltín	37
@@ -35,6 +39,7 @@ boys	Eddie	1384
 boys	Phoenix	1377
 boys	Caelan	1104
 boys	Eden	1103
+girls	Sarah-Jane	980
 girls	Eilidh	816
 boys	Hugh	769
 girls	Iona	743
@@ -45,6 +50,7 @@ girls	Kyra	663
 girls	Ruth	501
 boys	Ryder	467
 girls	Phoenix	409
+girls	Sioned	369
 boys	Ned	364
 boys	Ivor	350
 boys	Damien	324
@@ -62,6 +68,7 @@ girls	Kaitlyn	163
 girls	Katelyn	146
 girls	Rhiannon	124
 girls	Tegan	118
+boys	Tegan	106
 girls	Bronwyn	99
 girls	Lorna	96
 boys	Eugene	84

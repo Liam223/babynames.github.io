@@ -23,6 +23,8 @@ let listSex = 'both';          // My list filter: both | boys | girls
 const persist = () => { save(state); updateTabs(); };
 const announce = (msg) => { $('#live').textContent = ''; setTimeout(() => { $('#live').textContent = msg; }, 20); };
 const fmt = (n) => n.toLocaleString('en-GB');
+// One-line popularity description used in lists and the compare screen.
+const statLine = (n) => (n.classic ? `Classic · peaked ${n.classic.peak}` : `#${fmt(n.rank)} · ${fmt(n.count)} babies`);
 const merged = () => state.settings.sex === 'both';   // boys and girls mixed: names used for both appear once
 
 /* ---------- filtering & ordering ---------- */
@@ -30,7 +32,8 @@ function eligible(n, s) {
   if (s.irish && !n.irish) return false;
   if (s.pop === 'top100' && n.rank > 100) return false;
   if (s.pop === 'top500' && n.rank > 500) return false;
-  if (s.pop === 'gems' && n.rank <= 500) return false;
+  if (s.pop === 'gems' && (n.rank <= 500 || n.classic)) return false;   // gems are modern names; classics have their own filter
+  if (s.pop === 'retro' && !n.classic) return false;
   if (s.letters.length && !s.letters.includes(n.key[0].toUpperCase())) return false;
   return true;
 }
@@ -162,6 +165,11 @@ function show(name, opts = {}) {
   scrollTo(0, 0);
 }
 
+const POP_HELP = {
+  gems: 'Modern names outside the top 500.',
+  retro: 'Classics: names that were popular years ago but are rare today. Ranked after all the modern names.',
+};
+
 const SEX_HELP = {
   boys: 'Names given to baby boys.',
   girls: 'Names given to baby girls.',
@@ -174,6 +182,8 @@ function renderWelcome() {
   $$('input[name=pop]').forEach((i) => { i.checked = i.value === s.pop; });
   $('#f-irish').checked = s.irish;
   $('#sex-help').textContent = SEX_HELP[s.sex];
+  $('#pop-help').textContent = POP_HELP[s.pop] || '';
+  $('#pop-help').hidden = !POP_HELP[s.pop];
   $$('.chip').forEach((b) => b.setAttribute('aria-pressed', String(s.letters.includes(b.textContent))));
   $('#letters-count').textContent = s.letters.length ? s.letters.join(' ') : 'Any';
   const c = counts(SEXES);
@@ -211,7 +221,8 @@ function cardEl(n) {
   const irish = n.irish || (both && n.alt.irish);
   const babies = n.count + (both ? n.alt.count : 0);
   const sexWord = (x) => (x.sex === 'boys' ? 'Boys' : 'Girls');
-  const rankText = both
+  const cl = n.classic;
+  const rankText = cl ? 'A classic name' : both
     ? `${sexWord(n)} #${fmt(n.rank)} · ${sexWord(n.alt)} #${fmt(n.alt.rank)}`
     : n.rank <= 1000 ? `#${fmt(n.rank)} in UK & Ireland` : n.rank <= 3000 ? `Uncommon · #${fmt(n.rank)}` : 'Rare';
   const tr = trend(n, meta);
@@ -237,7 +248,7 @@ function cardEl(n) {
     ${irish ? '<div class="badge" role="img" aria-label="Irish name">☘️</div>' : ''}
     <p class="hint"></p>
     <p class="babies"></p>
-    ${so ? '<p class="standout"></p>' : ''}
+    ${so || cl ? '<p class="standout"></p>' : ''}
     ${tiles ? `<ul class="countries" aria-label="Rank in each country">${tiles}</ul>` : ''}
     <p class="variants"></p>`;
   $('.sexchip', el).textContent = both ? 'Unisex' : sexWord(n);
@@ -246,7 +257,9 @@ function cardEl(n) {
   if (n.name.length > 9) nm.classList.add('long');
   $('.hint', el).textContent = rankText;
   const b = $('.babies', el);
-  b.textContent = `${fmt(babies)} ${babies === 1 ? 'baby' : 'babies'}, ${years}`;
+  b.textContent = cl
+    ? `Peaked in ${cl.peak} · ${fmt(cl.peakCount)} ${cl.peakCount === 1 ? 'baby' : 'babies'} that year`
+    : `${fmt(babies)} ${babies === 1 ? 'baby' : 'babies'}, ${years}`;
   if (tr) {
     const t = document.createElement('span');
     t.className = 'trend ' + tr.label.toLowerCase();
@@ -254,6 +267,7 @@ function cardEl(n) {
     b.append(' ', t);
   }
   if (so) $('.standout', el).textContent = `Especially popular in ${so.country}`;
+  else if (cl) $('.standout', el).textContent = 'Classic · rare today';
   $('.variants', el).textContent = n.variants.length ? `also: ${n.variants.slice(0, 3).join(', ')}` : '';
   return el;
 }
@@ -412,7 +426,7 @@ function renderList() {
     const small = document.createElement('small');
     small.textContent = alt
       ? `Unisex · #${fmt(n.rank)} boys, #${fmt(alt.rank)} girls`
-      : `${n.sex === 'boys' ? 'Boy' : 'Girl'} · #${fmt(n.rank)} · ${fmt(n.count)} babies`;
+      : `${n.sex === 'boys' ? 'Boy' : 'Girl'} · ${statLine(n)}`;
     nm.append(title, small);
     li.append(nm);
     const act = (iconName, cls, to, aria, text = '') => {
@@ -567,7 +581,7 @@ function renderRank(pair = null) {
     pick.className = 'pick ' + it.d;
     pick.setAttribute('aria-label', `I prefer ${it.n.name}`);
     const irish = it.n.irish || (it.n.alt && it.n.alt.irish);
-    const rank = `${it.n.alt ? 'Unisex · ' : ''}#${fmt(it.n.rank)} · ${fmt(it.n.count)} babies`;
+    const rank = `${it.n.alt ? 'Unisex · ' : ''}${statLine(it.n)}`;
     pick.innerHTML = `<span class="tag">${icon(it.d === 'love' ? 'star' : 'heart', 15)}${it.d === 'love' ? 'Loved' : 'Liked'}</span>
       <span class="pn"></span>${irish ? '<span class="badge" role="img" aria-label="Irish name">☘️</span>' : ''}<span class="pi"></span>`;
     $('.pn', pick).textContent = it.n.name;
@@ -772,6 +786,9 @@ function init() {
   Promise.all(SEXES.map(loadSex)).then(([b, g]) => {
     linkUnisex(b, g);
     data = { boys: b, girls: g };
+    if (state.dataVersion !== b.version) {      // new name data: rescan the deck from the start (decisions are keyed by name, so nothing is lost)
+      state.queue.pos = 0; state.dataVersion = b.version; persist();
+    }
     buildQueue();
     if (screen === 'welcome') renderWelcome();
   }).catch((err) => { $('#remaining').textContent = 'Could not load the names: ' + err.message; });
