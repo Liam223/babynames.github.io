@@ -86,6 +86,6 @@ export function exportJSON(state) {
 export function parseImport(text) {
   const obj = JSON.parse(text);
   const st = obj && obj.app === 'babynames' ? obj.state : obj;
-  if (!st || typeof st !== 'object' || !st.decisions) throw new Error('This is not a Baby Name Swiper backup.');
+  if (!st || typeof st !== 'object' || !st.decisions) throw new Error('This is not a Nameblocks backup.');
   return migrate(st);
 }

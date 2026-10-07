@@ -27,7 +27,7 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 SRC = ROOT / "data-src"
-UA = "BabyNameSwiper-build/0.1 (https://github.com/Liam223/babynames.github.io)"
+UA = "Nameblocks-build/0.1 (https://github.com/Liam223/babynames.github.io)"
 TOP_N = 1000                 # most popular modern names of each sex to look up (Irish-tagged names are always included)
 WIKT_BATCH = 25
 WIKI_BATCH = 20

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="icons/logo.svg" alt="Baby Name Swiper logo: four toy letter blocks spelling BABY" width="96" height="96">
+  <img src="icons/logo.svg" alt="Nameblocks logo: four toy letter blocks spelling BABY" width="96" height="96">
 </p>
 
-<h1 align="center">Baby Name Swiper</h1>
+<h1 align="center">Nameblocks</h1>
 
 <p align="center">
   <strong>Swipe through UK and Irish baby names, then rank your favourites head to head.</strong><br>
