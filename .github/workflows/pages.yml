@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
-      - run: npm ci
+      - run: npm ci --ignore-scripts      # no dependency gets to run code on install; the browser is installed in its own step
       - id: playwright
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - id: browsers
