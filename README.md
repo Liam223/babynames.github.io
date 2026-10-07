@@ -10,11 +10,11 @@
 </p>
 
 <p align="center">
-  <a href="https://liam223.github.io/babynames.github.io/"><strong>Open the app &rarr;</strong></a>
+  <a href="https://liam223.github.io/nameblocks/"><strong>Open the app &rarr;</strong></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Liam223/babynames.github.io/actions/workflows/pages.yml"><img alt="Test and deploy" src="https://github.com/Liam223/babynames.github.io/actions/workflows/pages.yml/badge.svg"></a>
+  <a href="https://github.com/Liam223/nameblocks/actions/workflows/pages.yml"><img alt="Test and deploy" src="https://github.com/Liam223/nameblocks/actions/workflows/pages.yml/badge.svg"></a>
   <img alt="Static site" src="https://img.shields.io/badge/site-static-3E9150">
   <img alt="No build step" src="https://img.shields.io/badge/build-none-2F6DB5">
   <img alt="Vanilla JS" src="https://img.shields.io/badge/JavaScript-vanilla%20ES%20modules-F3C13A">
@@ -127,7 +127,7 @@ Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/page
 
 One-off setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. (The older "Deploy from a branch" mode would build the site a second time on every push.)
 
-It is a *project site*, so the app lives under `/babynames.github.io/` and **every asset path must be relative** (`./data/boys.json`, never `/data/boys.json`).
+It is a *project site*, so the app lives under `/nameblocks/` and **every asset path must be relative** (`./data/boys.json`, never `/data/boys.json`).
 
 ---
 

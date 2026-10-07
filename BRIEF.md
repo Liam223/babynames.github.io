@@ -3,9 +3,9 @@
 ## Overview
 Build a small, fun, mobile-first web app for quickly sorting, ranking and eliminating baby names. Users swipe through names (Tinder style), then rank their favourites head to head (this-or-that). The names are UK and Ireland-centric, with good coverage of Irish names and names of Irish origin.
 
-- **Repo:** https://github.com/Liam223/babynames.github.io
+- **Repo:** https://github.com/Liam223/nameblocks
 - **Hosting:** GitHub Pages, deployed from the `main` branch, `/ (root)` folder
-- **Live URL:** `https://liam223.github.io/babynames.github.io/`. This is a project site, so the repo name appears in the path. All asset paths **must be relative** (`./data/boys.json`, not `/data/boys.json`).
+- **Live URL:** `https://liam223.github.io/nameblocks/`. This is a project site, so the repo name appears in the path. All asset paths **must be relative** (`./data/boys.json`, not `/data/boys.json`).
 - **Cost:** must be free to build and host. No paid services.
 - **Audience:** UK/Ireland parents-to-be. Use UK English throughout (e.g. "favourites", "colour").
 
@@ -155,7 +155,7 @@ README.md
 Add `.nojekyll` so GitHub Pages serves every file as-is.
 
 ## Acceptance criteria
-- [ ] Loads at the live URL on iPhone Safari and Android Chrome. All paths work under the `/babynames.github.io/` subpath.
+- [ ] Loads at the live URL on iPhone Safari and Android Chrome. All paths work under the `/nameblocks/` subpath.
 - [ ] Swiping works smoothly with touch, mouse and keyboard. Buttons work as alternatives.
 - [ ] Undo restores the previous card and its decision.
 - [ ] Closing and reopening the browser keeps all progress.
