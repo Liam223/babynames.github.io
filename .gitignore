@@ -1,0 +1,5 @@
+# Raw source downloads (large). Re-create with: python scripts/fetch-data.py
+data-src/*.xlsx
+data-src/*.csv
+data-src/*.zip
+__pycache__/

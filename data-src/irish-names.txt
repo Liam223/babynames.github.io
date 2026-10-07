@@ -1,0 +1,626 @@
+# Curated list of Irish-origin first names (one per line).
+# Matching is accent- and case-insensitive, so "Oisín" also matches "Oisin".
+# Lines starting with # are comments. A trailing "  # ?" marks a name where
+# the Irish origin is uncertain or debatable (still included; review later).
+#
+# Part 1: Irish-language names (girls)
+Aisling
+Aoibhe
+Aoibheann
+Aoibhinn
+Aoife
+Ailbhe
+Ailish
+Aine
+Áine
+Aithne
+Alannah
+Aodhnait
+Bébhinn
+Bláithín
+Bláthnaid
+Bríd
+Brídín
+Bronagh
+Brónach
+Caitlín
+Caitríona
+Caoilfhionn
+Caoimhe
+Caragh
+Cara  # ?
+Cliodhna
+Clíodhna
+Clodagh
+Comhghan
+Credhe
+Dearbhla
+Dearbhail
+Deirdre
+Doireann
+Dymphna
+Eabha
+Éabha
+Éadaoin
+Eimear
+Eithne
+Éile
+Emer
+Étaín
+Eilis
+Eibhlín
+Fainche
+Fearghal
+Fiadh
+Fidelma
+Fionnuala
+Fionnghuala
+Fionnula
+Gormlaith
+Gráinne
+Grainne
+Íde
+Iseult
+Isolde  # ?
+Laoise
+Líadan
+Lasairfhíona
+Lorcan
+Mairéad
+Máire
+Máirín
+Maebh
+Maeve
+Mairead
+Mave
+Méabh
+Meadhbh
+Medb
+Mór
+Muireann
+Muirne
+Naoise
+Neasa
+Nessa
+Neve
+Niamh
+Nora  # ?
+Nuala
+Nóirín
+Oonagh
+Órla
+Orla
+Orlaith
+Órlaith
+Páidrigín
+Radha  # ?
+Ríona
+Riona
+Róisín
+Roisin
+Sadhbh
+Saoirse
+Saorla
+Sarah-Jane  # ?
+Seána
+Sinéad
+Siobhán
+Síofra
+Sive
+Sláine
+Sorcha
+Tuiliña
+Treasa
+Uaneen
+Aibhlinn
+Aideen
+Aislinn
+Blathnaid
+Brónagh
+Cadhla
+Caireann
+Cáit
+Ciara
+Ciarán
+Clara  # ?
+Cora  # ?
+Dáire
+Dara
+Darina
+Dervla
+Diarmuid
+Donna  # ?
+Eavan
+Eden  # ?
+Eilidh  # ? Scottish Gaelic
+Eimhear
+Enya
+Etain
+Fainne
+Faolán
+Fionnait
+Grace  # ? (Gráinne anglicisation, weak)
+Kerry
+Keira
+Kiera
+Kierra
+Kyra  # ?
+Maire
+Mairin
+Molly  # ?
+Neala
+Nialla
+Orna
+Peig
+Rían
+Ríoghnach
+Rionach
+Shannon
+Shona  # ? Scottish
+Sibéal
+Sineád
+Siún
+Slaney
+Tara
+Teagan
+Tegan  # ?
+Tiernan
+Bridget
+Brigid
+Brigit
+Bree
+Brianna
+Brenna
+Kayleigh  # ?
+Kelly
+Kennedy
+Kaitlyn  # ?
+Kaitlin  # ?
+Katelyn  # ?
+Caitlin
+Cailin
+Keeva
+Kiva  # ?
+Keelin
+Kellie
+Kerrie
+Kiara
+Mary-Kate  # ?
+Riley
+Rhiannon  # ? Welsh
+Sadie  # ?
+Shauna
+Sinead
+Siobhan
+Sioned  # ? Welsh
+Tierney
+Tully
+Ulla  # ?
+Vevina
+# Part 2: Irish-language names (boys)
+Adhamhnán
+Aidan
+Aodh
+Aodhán
+Aodhagán
+Ailbe
+Ailill
+Ardal
+Art
+Barra
+Barry
+Bearach
+Benen
+Breandán
+Brendan
+Brian
+Bran
+Brogan
+Cael
+Cahal
+Cahir
+Cairbre
+Cathal
+Cathaoir
+Caoimhín
+Caoimhin
+Cian
+Cillian
+Cilian
+Ciaran
+Ciarraí
+Colm
+Colman
+Colmán
+Comhghall
+Conall
+Conán
+Conchúr
+Conchobhar
+Conn
+Connor
+Conor
+Cormac
+Cosmo  # ?
+Cúán
+Cuán
+Cuan
+Cúchulainn
+Cullen
+Dáithí
+Daithí
+Darach
+Darragh
+Dathaí
+Deaglán
+Declan
+Diarmaid
+Dónal
+Donal
+Donnacha
+Donncha
+Donagh
+Donovan
+Dubhghall
+Dúnlaith
+Eamon
+Eamonn
+Éamonn
+Eanna
+Éanna
+Eddie  # ?
+Eochaidh
+Eoghan
+Eoin
+Eoghain
+Eugene  # ?
+Fachtna
+Feargal
+Fergal
+Fergus
+Fearghus
+Fiachra
+Fintan
+Fionn
+Fionnbharr
+Fionntán
+Fionnán
+Flann
+Flannán
+Gearóid
+Gerard  # ?
+Giolla
+Gobán
+Hugh  # ?
+Iarlaith
+Ivor  # ?
+Kevin
+Kieran
+Kian
+Lochlainn
+Lochlann
+Lughaidh
+Lúcás  # ?
+Mánus
+Malachy
+Mairtín
+Maitiú
+Manus
+Mícheál
+Micheál
+Mogue
+Muiris
+Muircheartach
+Murchadh
+Murrough
+Neal
+Neil  # ?
+Ned  # ?
+Niall
+Nial
+Odhrán
+Odhran
+Oisín
+Oisin
+Oscar
+Osgar
+Osgur
+Pádraig
+Padraig
+Pádraic
+Padraic
+Parthalán
+Peadar
+Phelim
+Proinsias
+Quinn
+Rian
+Riain
+Rónán
+Ronan
+Rory
+Ruairí
+Ruaidhrí
+Ruadhán
+Ruairi
+Ruadhri
+Ruán
+Ruan  # ?
+Rowan
+Ryan
+Réamonn
+Reamonn
+Rogan  # ?
+Seamus
+Séamus
+Seán
+Sean
+Seanán
+Senan
+Seoirse
+Seosamh
+Shane
+Shay
+Shea
+Sheridan
+Sioda
+Sloan
+Somhairle
+Sorley
+Stiofán
+Tadhg
+Tiarnán
+Tiarnan
+Tomás
+Torin  # ?
+Treasach
+Turlough
+Uilleag
+Ultán
+Aaron  # ?
+Alby
+Aonghus
+Aengus
+Angus
+Bartley
+Bearnard
+Blake  # ?
+Bryan
+Bradán
+Bradan
+Cahill
+Callum  # ? Scottish
+Cailean
+Calum
+Carrick
+Cathán
+Cobhán
+Coilín
+Conlaoch
+Conleth
+Connell
+Conway
+Corban
+Cuchulainn
+Daire
+Damien  # ?
+Daniel  # ?
+Doyle
+Duncan  # ?
+Dylan  # ? Welsh
+Ethan  # ?
+Finn
+Finnegan
+Finbar
+Finian
+Finnian
+Fionntan
+Flynn
+Garrett
+Gavin  # ?
+Gallagher
+Jarlath
+Jarlaith
+Keegan
+Keelan
+Kelan
+Kellan
+Kernan
+Killian
+Kilian
+Liam
+Lorcán
+Maguire
+Milo  # ?
+Murphy
+Nolan
+Oran
+Orán
+Orin
+Owen  # ?
+Patrick
+Phelan
+Phoenix  # ?
+Rafferty
+Reilly
+Riordan
+Roman  # ?
+Rooney
+Ryder  # ?
+Sullivan
+Teague
+Tiernán
+Tomas
+Torcán
+Tyrone
+Ultan
+# Part 3: other Irish and anglicised Irish names (both)
+Banba
+Bríona
+Briana
+Caomhán
+Ciera
+Cliona
+Deaglan
+Dubhlainn
+Dubhán
+Eilish
+Eimhin
+Eimhín
+Fia
+Fiona  # ? Scottish
+Fionnbar
+Garbhán
+Íomhar
+Iomhar
+Iona  # ? Scottish
+Isleen
+Kyle  # ? Scottish
+Laoghaire
+Lir
+Lorna  # ?
+Macha
+Muiríoch
+Nualla
+Roisín
+Tadgh
+Tierna
+Tighearnach
+Usna
+Vona
+Aislin
+Aoibhín
+Bairbre
+Brídeen
+Ena
+Eva  # ? (Aoife/Eve folk-equivalent; weak)
+Moragh
+Nollaig
+Nóra
+Noelle  # ?
+Oona
+Orlagh
+Rosin
+Saibh
+Fadhbh
+Faoileann
+Fíadh
+Éala
+Eala
+Aoibh
+Bláth
+Bláithnaid
+Caoilinn
+Caoileann
+Ceola
+Ciannait
+Ciannat
+Clíona
+Cliodna
+Danú
+Danu
+Deasún
+Dearbháil
+Deelan
+Eadaoin
+Edaein
+Étaoin
+Ealga
+Ériu
+Éire
+Eriu
+Fódla
+Lasair
+Lasrina
+Líbhán
+Lugh
+Luíseach
+Mailse
+Maoilíosa
+Meabh
+Mochaomhóg
+Muirgel
+Nuadha
+Oirbsen
+Orfhlaith
+Raghnailt
+Réaltán
+Ruth  # ?
+Sadb
+Sáerlaith
+Scáthach
+Scathach
+Séarlait
+Siofra
+Sioban
+Siomha
+Taidhg
+Tuathla
+Uaine
+Beibhinn
+Bebhinn
+Bevan  # ?
+Blaine
+Brannagh
+Brendon
+Bronwyn  # ? Welsh
+Cairenn
+Catriona  # ? Scottish
+Caitriona
+Cuinn
+Cormack
+Ciarraige
+Dualtach
+Eachann
+Fionán
+Fiontan
+Grania
+Ide
+Ita
+Iarfhlaith
+Illann
+Lochlan
+Mael
+Maelán
+Maolmhuire
+Maoilsheachlainn
+Mochta
+Muirenn
+Odran
+Rathnait
+Rua
+Ruadhan
+Ruarí
+Séanna
+Sean-Paul  # ?
+Seosaimhín
+Sinann
+Sionainn
+Tuathal
+Una
+Úna
+Kathleen
+Maureen
+Eileen
+Aileen
+Moira
+Noreen
+Colleen
+Sheila
+Maura
+Rosaleen
+Dermot
+Desmond
+Casey
+Cassidy
+Darby
+Devin
+Dillon
+Coleman
+Nevan
+Nevin
+Kenneth
+Moya
+Moyra
+Colin
+Paddy
