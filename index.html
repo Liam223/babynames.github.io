@@ -14,10 +14,10 @@
 <body data-sex="both">
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
-  <button class="brand" data-go="welcome" aria-label="Home">Baby Name Swiper</button>
+  <button class="brand" data-go="welcome" aria-label="Baby Name Swiper home"><span class="logo" data-icon="heart" data-size="16"></span><span class="brand-text">Baby Name Swiper</span></button>
   <nav aria-label="Main">
-    <button class="nav-btn" data-go="list">My list</button>
-    <button class="nav-btn" data-go="settings" aria-label="Settings">Settings</button>
+    <button class="nav-btn nav-list" data-go="list" aria-label="My list"><span data-icon="heart" data-size="20"></span><span class="nav-label">My list</span></button>
+    <button class="nav-btn nav-settings" data-go="settings" aria-label="Settings"><span data-icon="gear" data-size="20"></span><span class="nav-label">Settings</span></button>
   </nav>
 </header>
 
@@ -79,12 +79,12 @@
     <div class="progress"><span id="progress"></span></div>
     <div id="stage" class="stage"></div>
     <div class="actions" role="group" aria-label="Decide">
-      <button id="btn-no" class="round no" aria-label="No thanks">✕</button>
-      <button id="btn-like" class="round like" aria-label="Like">♥</button>
-      <button id="btn-love" class="round love" aria-label="Love it">★</button>
+      <button id="btn-no" class="round no" aria-label="No thanks"><span data-icon="x" data-size="30"></span></button>
+      <button id="btn-like" class="round like" aria-label="Like"><span data-icon="heart" data-size="30"></span></button>
+      <button id="btn-love" class="round love" aria-label="Love it"><span data-icon="star" data-size="26"></span></button>
     </div>
     <div class="subactions">
-      <button id="btn-undo" class="btn ghost">↶ Undo</button>
+      <button id="btn-undo" class="btn ghost"><span data-icon="undo" data-size="18"></span>Undo</button>
       <button id="btn-rank" class="btn ghost" disabled>Rank favourites</button>
     </div>
     <p id="toast" class="toast" role="status" hidden></p>
@@ -93,7 +93,11 @@
 
   <!-- My list -->
   <section id="screen-list" class="screen" hidden aria-labelledby="list-title">
-    <h1 id="list-title">My list</h1>
+    <h1 id="list-title"><span class="h-ic rose" data-icon="heart" data-size="22"></span>My list</h1>
+    <div class="search">
+      <span class="search-ic" data-icon="search" data-size="18"></span>
+      <input id="list-search" type="search" placeholder="Search your list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search your list">
+    </div>
     <div class="tabs" role="tablist" aria-label="List">
       <button role="tab" data-tab="love">Loved <span class="n"></span></button>
       <button role="tab" data-tab="like">Liked <span class="n"></span></button>
@@ -110,24 +114,27 @@
 
   <!-- Settings -->
   <section id="screen-settings" class="screen" hidden aria-labelledby="settings-title">
-    <h1 id="settings-title">Settings</h1>
-    <label class="field">Your nickname (used when you share your list)
-      <input id="nickname" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Liam">
-    </label>
+    <h1 id="settings-title"><span class="h-ic violet" data-icon="gear" data-size="22"></span>Settings</h1>
     <div class="panel">
-      <p class="panel-title">Back up</p>
+      <p class="panel-title"><span class="p-ic violet" data-icon="user" data-size="18"></span>Your nickname</p>
+      <label class="field">Used when you share your list with a partner
+        <input id="nickname" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Liam">
+      </label>
+    </div>
+    <div class="panel">
+      <p class="panel-title"><span class="p-ic green" data-icon="shield" data-size="18"></span>Back up</p>
       <p class="muted">Move your choices to another phone with a backup file.</p>
       <div class="row">
-        <button id="btn-export" class="btn">Export backup</button>
-        <label class="btn file">Import backup<input id="file-import" type="file" accept="application/json,.json" hidden></label>
+        <button id="btn-export" class="btn primary"><span data-icon="download" data-size="18"></span>Export backup</button>
+        <label class="btn file"><span data-icon="upload" data-size="18"></span>Import backup<input id="file-import" type="file" accept="application/json,.json" hidden></label>
       </div>
       <p id="settings-msg" class="muted" role="status"></p>
     </div>
     <div class="panel danger">
-      <p class="panel-title">Reset</p>
+      <p class="panel-title"><span class="p-ic red" data-icon="trash" data-size="18"></span>Reset</p>
       <div class="row">
-        <button id="btn-reset-sex" class="btn danger-btn">Reset current selection</button>
-        <button id="btn-reset-all" class="btn danger-btn">Reset everything</button>
+        <button id="btn-reset-sex" class="btn danger-btn"><span data-icon="trash" data-size="18"></span>Reset current selection</button>
+        <button id="btn-reset-all" class="btn danger-btn"><span data-icon="trash" data-size="18"></span>Reset everything</button>
       </div>
     </div>
     <p id="storage-warn" class="muted" hidden>Your browser is blocking storage, so progress won't be saved. Use Export backup to keep it.</p>

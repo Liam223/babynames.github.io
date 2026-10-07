@@ -1,5 +1,6 @@
 import { load, save, flush, defaultState, exportJSON, parseImport, HISTORY_CAP, storageOk } from './storage.js';
-import { loadSex, sexesFor, SEXES, linkUnisex, isPrimary, trend, standout, COUNTRY_SHORT } from './names.js';
+import { loadSex, sexesFor, SEXES, linkUnisex, isPrimary, trend, standout, nameKey, COUNTRY_SHORT } from './names.js';
+import { icon, hydrateIcons } from './icons.js';
 import { attachSwipe } from './swipe.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -15,6 +16,7 @@ let screen = 'welcome';
 let listTab = 'love';
 let listSort = 'rank';
 let listLimit = 100;
+let listQuery = '';
 
 const persist = () => save(state);
 const announce = (msg) => { $('#live').textContent = ''; setTimeout(() => { $('#live').textContent = msg; }, 20); };
@@ -116,7 +118,8 @@ function show(name) {
   document.body.dataset.sex = name === 'swipe' || name === 'welcome' ? state.settings.sex : 'both';
   if (name === 'welcome') renderWelcome();
   if (name === 'swipe') renderSwipe();
-  if (name === 'list') { listLimit = 100; listTab = ['love', 'like', 'no'].find((t) => listRows(t).length) || 'love'; renderList(); }
+  for (const b of $$('.nav-btn')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
+  if (name === 'list') { listQuery = ''; $('#list-search').value = ''; listLimit = 100; listTab = ['love', 'like', 'no'].find((t) => listRows(t).length) || 'love'; renderList(); }
   if (name === 'settings') renderSettings();
   scrollTo(0, 0);
 }
@@ -298,6 +301,9 @@ function listRows(tab) {
       rows.push({ n, alt });
     }
   }
+  const q = nameKey(listQuery.trim());
+  const keep = (n) => !q || nameKey(n.name).includes(q) || n.variants.some((v) => nameKey(v).includes(q));
+  if (q) rows.splice(0, rows.length, ...rows.filter((r) => keep(r.n)));
   if (listSort === 'az') rows.sort((a, b) => a.n.name.localeCompare(b.n.name, 'en'));
   else rows.sort((a, b) => a.n.rank - b.n.rank || a.n.name.localeCompare(b.n.name, 'en'));
   return rows;
@@ -314,7 +320,11 @@ function renderList() {
   for (const b of $$('.sort button')) b.setAttribute('aria-pressed', String(b.dataset.sort === listSort));
   const rows = listRows(listTab);
   if (!rows.length) {
-    ul.innerHTML = `<li class="none">${listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!'}</li>`;
+    const li = document.createElement('li');
+    li.className = 'none';
+    li.textContent = listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
+      : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!';
+    ul.append(li);
   }
   for (const { n, alt } of rows.slice(0, listLimit)) {
     const li = document.createElement('li');
@@ -328,9 +338,11 @@ function renderList() {
       : `${n.sex === 'boys' ? 'Boy' : 'Girl'} · #${fmt(n.rank)} · ${fmt(n.count)} babies`;
     nm.append(title, small);
     li.append(nm);
-    const act = (label, to, aria) => {
+    const act = (iconName, cls, to, aria, text = '') => {
       const b = document.createElement('button');
-      b.className = 'mini'; b.textContent = label; b.setAttribute('aria-label', `${aria} ${n.name}`);
+      b.className = 'mini ' + cls;
+      b.innerHTML = icon(iconName, 18) + (text ? `<span>${text}</span>` : '');
+      b.setAttribute('aria-label', `${aria} ${n.name}`);
       b.addEventListener('click', () => {
         state.decisions[n.sex][n.key] = to;
         if (alt) state.decisions[alt.sex][alt.key] = to;
@@ -338,10 +350,10 @@ function renderList() {
       });
       li.append(b);
     };
-    if (listTab === 'no') act('Restore', 'like', 'Restore');
-    if (listTab === 'like') act('★', 'love', 'Love');
-    if (listTab === 'love') act('♥', 'like', 'Move to liked:');
-    if (listTab !== 'no') act('✕', 'no', 'Eliminate');
+    if (listTab === 'no') act('undo', 'restore', 'like', 'Restore', 'Restore');
+    if (listTab === 'like') act('star', 'love', 'love', 'Love');
+    if (listTab === 'love') act('heart', 'like', 'like', 'Move to liked:');
+    if (listTab !== 'no') act('x', 'no', 'no', 'Eliminate');
     ul.append(li);
   }
   $('#list-more').hidden = rows.length <= listLimit;
@@ -403,6 +415,7 @@ function initLetters() {
 }
 
 function init() {
+  hydrateIcons();
   initLetters();
   document.addEventListener('click', (e) => {
     const g = e.target.closest('[data-go]');
@@ -430,6 +443,7 @@ function init() {
 
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => { listTab = b.dataset.tab; listLimit = 100; renderList(); }));
   $$('.sort button').forEach((b) => b.addEventListener('click', () => { listSort = b.dataset.sort; renderList(); }));
+  $('#list-search').addEventListener('input', (e) => { listQuery = e.target.value; listLimit = 100; renderList(); });
   $('#list-more').addEventListener('click', () => { listLimit += 200; renderList(); });
 
   $('#nickname').addEventListener('input', (e) => { state.settings.nickname = e.target.value.trim(); persist(); });

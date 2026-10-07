@@ -63,16 +63,15 @@ export function trend(n, meta) {
   return { label, arrow, shares: sh };
 }
 
-// 'Especially popular in X' when one country ranks the name far higher (as a percentile) than the UK & Ireland overall.
+// 'Especially popular in X' when one country ranks the name at least twice as high as the UK & Ireland overall.
+// Plain ranks are compared (England & Wales is ~85% of births, so it only rarely stands out from the overall list).
 export function standout(n, meta) {
-  if (!n.countryRank.length || !meta.countrySizes.length) return null;
-  const overall = n.rank / meta.size;
+  if (!n.countryRank.length) return null;
   let best = null;
   n.countryRank.forEach((r, i) => {
     if (!r || n.byCountry[i] < 20) return;
-    const p = r / meta.countrySizes[i];
-    if (!best || p < best.p) best = { i, p, rank: r };
+    if (!best || r < best.rank) best = { i, rank: r };
   });
-  if (best && best.p < overall * 0.5 && best.rank <= 300) return { country: meta.countries[best.i], rank: best.rank };
+  if (best && best.rank * 2 <= n.rank && best.rank <= 300) return { country: meta.countries[best.i], rank: best.rank };
   return null;
 }
