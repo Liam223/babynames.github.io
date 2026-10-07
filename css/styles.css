@@ -186,11 +186,6 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 
 /* ---------- swipe ---------- */
 .progress { text-align: center; color: var(--muted); font-weight: 700; min-height: 28px; padding-top: 4px; }
-.coach { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 12px; text-align: center; padding: 10px 14px; margin: 4px 0 8px;
-  border-radius: 16px; background: var(--surface); border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); }
-.coach p { margin: 0; font-weight: 700; }
-.coach .k { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; font-weight: 800; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
-.k-no { background: var(--red); color: var(--on-red); } .k-like { background: var(--green); color: var(--on-green); } .k-love { background: var(--yellow); color: var(--on-yellow); }
 .stage { position: relative; height: min(56vh, 460px); height: min(56svh, 460px); min-height: 300px; margin: 8px 0 30px; display: grid; place-items: center; }
 .card {
   position: absolute; inset: 0; border-radius: 18px; background: var(--surface); color: var(--ink);
@@ -317,3 +312,14 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* first-use swipe tip */
+.coach { display: grid; gap: 10px; margin: 4px 0 10px; padding: 14px; border-radius: 16px; background: var(--surface); border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line); text-align: center; }
+.coach p { margin: 0; font-weight: 600; color: var(--muted); }
+.keys { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding: 0; }
+.keys li { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 12px; font-weight: 800; box-shadow: 0 3px 0 rgba(0, 0, 0, .22); }
+.keys .arr { font-size: 1.5rem; line-height: 1; }
+.keys .no { background: var(--red); color: var(--on-red); }
+.keys .like { background: var(--green); color: var(--on-green); }
+.keys .love { background: var(--yellow); color: var(--on-yellow); }
+.btn.coach-btn { width: 100%; min-height: 48px; background: var(--blue); color: var(--on-blue); border-color: var(--blue); box-shadow: 0 3px 0 var(--blue-d); }

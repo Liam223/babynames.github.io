@@ -82,11 +82,15 @@
 
   <!-- Swipe -->
   <section id="screen-swipe" class="screen" hidden aria-label="Swipe round">
-    <div id="coach" class="coach" hidden>
-      <p><span class="k k-no">←</span> No &nbsp; <span class="k k-like">→</span> Like &nbsp; <span class="k k-love">↑</span> Love</p>
-      <p class="muted">Swipe the card or use the buttons.</p>
-      <button id="coach-ok" class="link" type="button">Got it</button>
-    </div>
+    <aside id="coach" class="coach" hidden aria-label="How to swipe">
+      <ul class="keys">
+        <li class="no"><span class="arr" aria-hidden="true">←</span><b>No</b></li>
+        <li class="like"><span class="arr" aria-hidden="true">→</span><b>Like</b></li>
+        <li class="love"><span class="arr" aria-hidden="true">↑</span><b>Love</b></li>
+      </ul>
+      <p>Swipe the card or tap the buttons.</p>
+      <button id="coach-ok" class="btn coach-btn" type="button">Got it</button>
+    </aside>
     <div class="progress"><span id="progress"></span></div>
     <div id="stage" class="stage"></div>
     <div class="actions" role="group" aria-label="Decide">
