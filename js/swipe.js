@@ -2,10 +2,12 @@
 const DIST = 100;        // px needed to commit
 const SPEED = 0.55;      // px/ms flick speed that also commits
 const FLICK_MIN = 60;    // a fast flick must still travel this far to count
+const TAP_MAX = 8;        // px of movement that still counts as a tap
+const TAP_TIME = 500;     // ms
 const DEAD = 12;         // px of movement before any stamp or glow shows
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function attachSwipe(card, onDecide) {
+export function attachSwipe(card, onDecide, onTap) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, active = false, done = false, id = null;
   const stamp = (cls) => card.querySelector('.stamp.' + cls);
   const glow = card.querySelector('.glow');
@@ -50,6 +52,7 @@ export function attachSwipe(card, onDecide) {
     active = false; card.classList.remove('dragging');
     const dt = Math.max(1, performance.now() - t0);
     const dir = e.type === 'pointerup' ? direction(dx / dt, dy / dt) : null;
+    if (!dir && onTap && e.type === 'pointerup' && Math.hypot(dx, dy) < TAP_MAX && dt < TAP_TIME) { springBack(); onTap(); return; }
     if (dir) fling(dir); else springBack();
   };
   card.addEventListener('pointerup', end);

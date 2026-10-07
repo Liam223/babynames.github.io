@@ -104,9 +104,19 @@
     </div>
     <div class="subactions">
       <button id="btn-undo" class="btn ghost"><span data-icon="undo" data-size="18"></span>Undo</button>
+      <button id="btn-info" class="btn ghost"><span data-icon="info" data-size="18"></span>Details</button>
       <button class="btn ghost" data-go="welcome"><span data-icon="sliders" data-size="18"></span>Filters</button>
     </div>
     <p class="hint-keys muted center">Swipe, tap, or use ← → ↑ and Z to undo</p>
+  </section>
+
+  <!-- Name information -->
+  <section id="screen-info" class="screen" hidden aria-labelledby="info-title">
+    <div class="titlebar">
+      <button id="info-back" class="iconbtn" aria-label="Back"><span data-icon="arrow-left" data-size="22"></span></button>
+      <h1 id="info-title"></h1>
+    </div>
+    <div id="info-body"></div>
   </section>
 
   <!-- Ranking round -->

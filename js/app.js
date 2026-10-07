@@ -17,6 +17,9 @@ let screen = 'welcome';
 let listTab = 'love';
 let listSort = 'rank';
 let listLimit = 100;
+let infoName = null;           // the name entry shown on the info screen
+let infoSex = null;            // which sex's figures (for unisex names)
+let infoFrom = 'swipe';        // screen to return to
 let listQuery = '';
 let listSex = 'both';          // My list filter: both | boys | girls
 
@@ -148,7 +151,8 @@ function show(name, opts = {}) {
   document.body.dataset.sex = name === 'swipe' || name === 'welcome' ? state.settings.sex : 'both';
   if (name === 'welcome') renderWelcome();
   if (name === 'swipe') renderSwipe();
-  for (const b of $$('.tab')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
+  const navName = name === 'info' ? infoFrom : name;       // the info screen keeps the tab you came from highlighted
+  for (const b of $$('.tab')) { if (b.dataset.go === navName) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
   updateTabs();
   if (name === 'rank') {
     const p = defaultPool();
@@ -156,13 +160,16 @@ function show(name, opts = {}) {
     renderRank();
   }
   if (name === 'list') {
-    listQuery = ''; $('#list-search').value = ''; listLimit = 100;
-    const has = (t) => (t === 'ranked' ? totalCompared() > 0 && poolSize(rankedSex()) >= 2 : rowsFor(t).length > 0);
-    listTab = opts.tab || ['ranked', 'love', 'like', 'no'].find(has) || 'love';
+    if (!opts.keep) {                    // coming back from the info screen keeps your tab, search and filters
+      listQuery = ''; $('#list-search').value = ''; listLimit = 100;
+      const has = (t) => (t === 'ranked' ? totalCompared() > 0 && poolSize(rankedSex()) >= 2 : rowsFor(t).length > 0);
+      listTab = opts.tab || ['ranked', 'love', 'like', 'no'].find(has) || 'love';
+    }
     renderList();
   }
+  if (name === 'info') renderInfo();
   if (name === 'settings') renderSettings();
-  scrollTo(0, 0);
+  if (!(name === 'list' && opts.keep)) scrollTo(0, 0);
 }
 
 const POP_HELP = {
@@ -245,6 +252,7 @@ function cardEl(n) {
     <div class="stamp love" aria-hidden="true">LOVE</div>
     <div class="glow" aria-hidden="true"></div>
     <div class="sexchip" aria-hidden="true"></div>
+    <div class="cardinfo" aria-hidden="true">${icon('info', 22)}</div>
     <h2 class="name"></h2>
     ${irish ? '<div class="badge" role="img" aria-label="Irish name">☘️</div>' : ''}
     <p class="hint"></p>
@@ -297,6 +305,7 @@ function renderSwipe() {
   const c = counts();
   $('#progress').textContent = summary(c);
   $('#btn-undo').disabled = state.history.length === 0;
+  $('#btn-info').disabled = !current;
   $('#coach').hidden = !!state.settings.hintSeen;
   for (const id of ['no', 'like', 'love']) $('#btn-' + id).disabled = !current;
   if (!current) {
@@ -315,7 +324,7 @@ function renderSwipe() {
   }
   const el = cardEl(current.name);
   stage.append(el);
-  swiper = attachSwipe(el, decide);
+  swiper = attachSwipe(el, decide, () => { if (current) openInfo(current.name); });
 }
 
 function decide(dir) {
@@ -430,6 +439,7 @@ function renderList() {
       : `${n.sex === 'boys' ? 'Boy' : 'Girl'} · ${statLine(n)}`;
     nm.append(title, small);
     li.append(nm);
+    li.append(infoButton(n));
     const act = (iconName, cls, to, aria, text = '') => {
       const b = document.createElement('button');
       b.className = 'mini ' + cls;
@@ -538,7 +548,7 @@ function rankedRowEl({ n, alt, e, d, pos, pct, pool }) {
     state.decisions[pool][n.key] = 'no';       // only this sex's pool; a unisex name can still be wanted in the other
     persist(); announce(`${n.name} eliminated`); renderList();
   });
-  li.append(badge, nm, score, rm);
+  li.append(badge, nm, score, infoButton(n), rm);
   return li;
 }
 
@@ -639,6 +649,152 @@ function undoRank() {
   persist(); announce('Undid last comparison');
   renderRank([u.w, u.l]);
 }
+
+/* ---------- name information ---------- */
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function infoButton(n) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'mini info';
+  b.innerHTML = icon('info', 18);
+  b.setAttribute('aria-label', `About ${n.name}`);
+  b.addEventListener('click', () => openInfo(n));
+  return b;
+}
+
+function openInfo(n) {
+  if (!n) return;
+  infoName = n;
+  infoSex = n.sex;
+  if (screen !== 'info') infoFrom = screen;
+  show('info');
+}
+
+function leaveInfo() {
+  const to = infoFrom === 'info' || !infoFrom ? 'swipe' : infoFrom;
+  show(to, to === 'list' ? { keep: true } : {});
+}
+
+// The entry for the sex being shown (a unisex name has one entry per sex).
+function infoEntry() {
+  const b = infoName;
+  if (infoSex === b.sex) return b;
+  return b.alt && b.alt.sex === infoSex ? b.alt : b;
+}
+
+function barChart(values, labels) {
+  const max = Math.max(1, ...values);
+  return `<div class="ybars" role="img" aria-label="Babies per year: ${values.map((v, i) => `${labels[i]}: ${v}`).join(', ')}">`
+    + values.map((v, i) => `<div class="ybar"><b>${fmt(v)}</b><i style="height:${Math.max(4, Math.round((100 * v) / max))}%"></i><span>${esc(labels[i])}</span></div>`).join('')
+    + '</div>';
+}
+
+function renderInfo() {
+  document.body.dataset.sex = 'both';
+  if (!infoName) { show('swipe'); return; }
+  const base = infoName;
+  const n = infoEntry();
+  const meta = data[n.sex];
+  const noun = n.sex === 'boys' ? 'boys’' : 'girls’';
+  const babiesWord = (k) => (k === 1 ? 'baby' : 'babies');
+  const irish = n.irish || (n.alt && n.alt.irish);
+  const cl = n.classic;
+  const yrs = meta.years;
+  const span = yrs.length ? `${yrs[0]}–${String(yrs[yrs.length - 1]).slice(2)}` : '';
+  $('#info-title').textContent = n.name;
+  const out = [];
+
+  // chips
+  const chips = [];
+  chips.push(base.alt ? '<span class="ichip both">Unisex</span>' : `<span class="ichip ${n.sex}">${n.sex === 'boys' ? 'Boys’ name' : 'Girls’ name'}</span>`);
+  if (irish) chips.push('<span class="ichip irish">☘️ Irish name</span>');
+  if (cl) chips.push(`<span class="ichip">${cl.peak <= 2005 ? 'Classic' : 'Past favourite'}</span>`);
+  out.push(`<div class="ichips">${chips.join('')}</div>`);
+
+  // unisex: split and switch
+  if (base.alt) {
+    const be = base.sex === 'boys' ? base : base.alt;
+    const ge = base.sex === 'girls' ? base : base.alt;
+    const total = be.count + ge.count;
+    if (total > 0) {
+      const pb = Math.round((100 * be.count) / total);
+      out.push(`<div class="panel"><p class="panel-title">Boys and girls</p>
+        <div class="split" role="img" aria-label="${pb}% boys, ${100 - pb}% girls"><i class="b" style="width:${pb}%"></i><i class="g" style="width:${100 - pb}%"></i></div>
+        <p class="muted small">${pb}% boys · ${100 - pb}% girls (${esc(span)}). Boys #${fmt(be.rank)}, girls #${fmt(ge.rank)} in their lists.</p></div>`);
+    }
+    out.push(`<div class="seg info-sex" role="radiogroup" aria-label="Show figures for">
+      <label><input type="radio" name="infosex" value="boys"${n.sex === 'boys' ? ' checked' : ''}><span>As a boy’s name</span></label>
+      <label><input type="radio" name="infosex" value="girls"${n.sex === 'girls' ? ' checked' : ''}><span>As a girl’s name</span></label></div>`);
+  }
+
+  // headline numbers
+  const sexTotal = (meta.yearTotals || []).reduce((a, b) => a + b, 0);
+  if (cl) {
+    out.push(`<div class="panel"><p class="panel-title">History</p>
+      <div class="istats">
+        <div><b>${cl.peak}</b><span>peak year</span></div>
+        <div><b>${fmt(cl.peakCount)}</b><span>${babiesWord(cl.peakCount)} that year</span></div>
+        <div><b>${fmt(cl.full)}</b><span>births on record</span></div>
+      </div>
+      <p class="muted small">Rare today: ${n.count ? `${fmt(n.count)} ${babiesWord(n.count)} in ${esc(span)}` : `fewer than 3 a year in ${esc(span)}`}. Records go back to 1996 (England &amp; Wales), 1997 (Northern Ireland), 1974 (Scotland) and 1964 (Republic of Ireland).</p></div>`);
+  } else {
+    const oneIn = n.count && sexTotal ? Math.round(sexTotal / n.count) : 0;
+    out.push(`<div class="panel"><p class="panel-title">Popularity</p>
+      <div class="istats">
+        <div><b>#${fmt(n.rank)}</b><span>${esc(noun)} names, UK &amp; Ireland</span></div>
+        <div><b>${fmt(n.count)}</b><span>${babiesWord(n.count)}, ${esc(span)}</span></div>
+        <div><b>${oneIn ? `1 in ${fmt(oneIn)}` : '–'}</b><span>of all ${esc(noun)} births</span></div>
+      </div></div>`);
+
+    // per-year chart
+    if (n.years.length === yrs.length && yrs.length) {
+      const tr = trend(n, meta);
+      let note = '';
+      if (tr) {
+        const t = meta.yearTotals;
+        const early = (n.years[0] + n.years[1]) / ((t[0] + t[1]) || 1);
+        const late = (n.years[n.years.length - 2] + n.years[n.years.length - 1]) / ((t[t.length - 2] + t[t.length - 1]) || 1);
+        const ratio = early ? late / early : 0;
+        note = `<p class="trend ${tr.label.toLowerCase()}"><span aria-hidden="true">${tr.arrow}</span> ${tr.label}${ratio && tr.label !== 'Steady' ? ` · ${ratio >= 1 ? '×' : '×'}${ratio.toFixed(1)} the share of births since ${yrs[0]}–${String(yrs[1]).slice(2)}` : ''}</p>`;
+      }
+      out.push(`<div class="panel"><p class="panel-title">Babies per year</p>${barChart(n.years, yrs.map((y) => `’${String(y).slice(2)}`))}${note}</div>`);
+    }
+
+    // per-country
+    if (n.countryRank.length) {
+      const rows = n.countryRank.map((r, i) => `<tr><th scope="row">${esc(meta.countries[i])}</th><td>${r ? '#' + fmt(r) : '–'}</td><td>${fmt(n.byCountry[i])}</td></tr>`).join('');
+      const so = standout(n, meta);
+      out.push(`<div class="panel"><p class="panel-title">By country</p>
+        <table class="itable"><thead><tr><th></th><th scope="col">Rank</th><th scope="col">Babies</th></tr></thead><tbody>${rows}</tbody></table>
+        ${so ? `<p class="standout">Especially popular in ${esc(so.country)}</p>` : ''}
+        <p class="muted small">Babies born ${esc(span)}. Each country ranks names within its own list.</p></div>`);
+    }
+  }
+
+  // spellings
+  if (n.variants.length) {
+    out.push(`<div class="panel"><p class="panel-title">Other spellings</p>
+      <p class="ichips">${n.variants.map((v) => `<span class="ichip">${esc(v)}</span>`).join('')}</p>
+      <p class="muted small">Spellings that differ only by accents or capitals are grouped with this card.</p></div>`);
+  }
+
+  // your choice
+  const d = state.decisions[n.sex][n.key];
+  const elo = state.elo[n.sex][n.key];
+  const label = { love: 'Loved', like: 'Liked', no: 'Eliminated' }[d] || 'Not decided yet';
+  out.push(`<div class="panel"><p class="panel-title">Your choice</p>
+    <p><span class="ichip ${d || ''}">${label}</span>${elo && elo.n ? ` <span class="muted">Rating ${fmt(Math.round(elo.r))} after ${elo.n} comparison${elo.n === 1 ? '' : 's'}</span>` : ''}</p></div>`);
+
+  out.push('<div id="info-extra"></div>');
+  out.push('<p class="muted small center">Counts: ONS, National Records of Scotland, NISRA and CSO. Contains public sector information licensed under the Open Government Licence v3.0.</p>');
+  $('#info-body').innerHTML = out.join('');
+  $$('input[name=infosex]').forEach((i) => i.addEventListener('change', () => { infoSex = i.value; renderInfo(); }));
+  renderInfoExtra(n);
+}
+
+// Placeholder for origin, meaning and pronunciation (added by the enrichment data).
+function renderInfoExtra() {}
 
 /* ---------- settings ---------- */
 let persistAsked = false;
@@ -742,6 +898,11 @@ function init() {
     persist(); $('#rank-hint').hidden = true;
   });
   $('#rank-undo').addEventListener('click', undoRank);
+  $('#info-back').addEventListener('click', leaveInfo);
+  $('#btn-info').addEventListener('click', () => { if (current) openInfo(current.name); });
+  document.addEventListener('keydown', (e) => {
+    if (screen === 'info' && e.key === 'Escape') leaveInfo();
+  });
   document.addEventListener('keydown', (e) => {
     if (screen !== 'rank' || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
     if (e.key === 'ArrowLeft') { e.preventDefault(); choose(0); }
@@ -754,6 +915,7 @@ function init() {
     const map = { ArrowLeft: 'no', ArrowRight: 'like', ArrowUp: 'love' };
     if (map[e.key]) { e.preventDefault(); act(map[e.key])(); }
     else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undo(); }
+    else if ((e.key === 'i' || e.key === 'I') && current) { e.preventDefault(); openInfo(current.name); }
   });
 
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => { listTab = b.dataset.tab; listLimit = 100; renderList(); }));

@@ -408,3 +408,37 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 /* Ranked rows: a quiet eliminate button so the ranking stays the focus */
 .rows li.ranked .mini.no { background: color-mix(in srgb, var(--red) 12%, var(--surface)); color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, transparent); box-shadow: none; }
 .rows li.ranked .mini.no:active { background: var(--red); color: var(--on-red); }
+
+
+/* ---------- name information screen ---------- */
+.cardinfo { position: absolute; top: 8px; right: 10px; color: var(--muted); opacity: .75; pointer-events: none; }
+.rows .mini.info { background: var(--surface); color: var(--ink); border-color: var(--edge); box-shadow: 0 2px 0 var(--edge); }
+.rows li.ranked .mini.info { box-shadow: none; }
+.ichips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; padding: 0; }
+.panel .ichips { margin: 6px 0 0; }
+.ichip { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 12px; border: 2px solid var(--edge); background: var(--surface); font-weight: 700; font-size: .85rem; }
+.ichip.boys { border-color: var(--blue); } .ichip.girls { border-color: var(--pink); } .ichip.both { border-color: var(--green); }
+.ichip.irish { border-color: var(--green); }
+.ichip.love { background: var(--yellow); border-color: var(--yellow); color: var(--on-yellow); }
+.ichip.like { background: var(--green); border-color: var(--green); color: var(--on-green); }
+.ichip.no { background: var(--red); border-color: var(--red); color: var(--on-red); }
+.istats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.istats div { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px 4px; border-radius: 12px; background: color-mix(in srgb, var(--wood) 70%, transparent); border: 1.5px solid var(--line); }
+.istats b { font: 700 1.4rem/1.1 var(--font-display); }
+.istats span { margin-top: 2px; font-size: .75rem; color: var(--muted); font-weight: 600; }
+.ybars { display: flex; align-items: flex-end; gap: 8px; height: 130px; margin-top: 10px; }
+.ybar { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+.ybar i { display: block; width: 100%; max-width: 44px; border-radius: 8px 8px 3px 3px; background: var(--blue); }
+.ybar b { font-size: .7rem; color: var(--muted); font-weight: 700; }
+.ybar span { font-size: .75rem; font-weight: 700; }
+.panel .trend { margin: 10px 0 0; }
+.itable { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: .95rem; }
+.itable th, .itable td { padding: 8px 6px; text-align: right; border-bottom: 1.5px solid var(--line); }
+.itable th:first-child { text-align: left; font-weight: 700; }
+.itable thead th { color: var(--muted); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; }
+.itable tbody tr:last-child th, .itable tbody tr:last-child td { border-bottom: 0; }
+.itable td { font-weight: 800; font-variant-numeric: tabular-nums; }
+.panel .standout { display: inline-block; margin: 10px 0 0; padding: 3px 12px; border-radius: 8px; background: var(--yellow); color: var(--on-yellow); font-size: .85rem; font-weight: 800; }
+.split { display: flex; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0 6px; background: var(--wood); }
+.split .b { background: var(--blue); } .split .g { background: var(--pink); }
+.info-sex { margin: 0 0 14px; }
