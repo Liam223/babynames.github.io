@@ -2,7 +2,7 @@
 // Births per year come from data/history/<sex>-<letter>.json (built by scripts/build-history.py).
 import { icon } from './icons.js';
 import { standout } from './names.js';
-import { $, $$, data, fmt, esc, ptitle } from './core.js';
+import { $, $$, data, fmt, esc, ptitle, babies } from './core.js';
 
 // Births per year over each source's whole history, from data/history/<sex>-<letter>.json (built by scripts/build-history.py).
 // One small file per letter, fetched when a details screen opens, so it never slows down the swipe deck.
@@ -146,7 +146,7 @@ function historyPanel(n, h) {
   const nowCls = story.pct >= 60 ? 'good' : story.pct >= 25 ? 'mid' : 'low';
   const tiles = story.peak
     ? `<div class="story-tiles">
-        <div class="st pk"><span class="lab">Peak</span><b>${story.peakYear}</b><small>${fmt(story.peak)} ${story.peak === 1 ? 'baby' : 'babies'}${first ? ' · first year on record' : ''}</small></div>
+        <div class="st pk"><span class="lab">Peak</span><b>${story.peakYear}</b><small>${babies(story.peak)}${first ? ' · first year on record' : ''}</small></div>
         <div class="st ${nowCls}"><span class="lab">Now</span><b>${story.last === story.peak ? 'At peak' : story.last ? `${story.pct}%` : '<3'}</b><small>${story.last === story.peak ? `highest ever, ${END}` : story.last ? `of the peak (${END})` : `babies in ${END}`}</small></div>
         <div class="st ${story.trend.cls}"><span class="lab">Trend</span><b>${story.trend.arrow} ${esc(story.trend.label)}</b><small>${esc(story.trend.caption)}</small></div>
       </div>`
@@ -168,7 +168,7 @@ function historyPanel(n, h) {
     if (!n.classic && n.countryRank.length) {
       const r = v === 'all' ? n.rank : n.countryRank[v];
       const c = v === 'all' ? n.count : n.byCountry[v];
-      recent = c ? `${r ? `#${fmt(r)} · ` : ''}${fmt(c)} ${c === 1 ? 'baby' : 'babies'}` : 'none';
+      recent = c ? `${r ? `#${fmt(r)} · ` : ''}${babies(c)}` : 'none';
     }
     const tag = v === soIdx ? `<span class="star" role="img" aria-label="Especially popular here" title="Especially popular here">${icon('star', 12)}</span>` : '';
     const cc = v === 'all' ? ALL_COLOUR : COUNTRY_COLOUR[v];
@@ -178,7 +178,7 @@ function historyPanel(n, h) {
       <span class="ct"><b>${fmt(total)}</b><small>${py ? `peak ${py}` : 'births'}</small></span></button>`;
   }).join('');
 
-  const rare = n.classic ? `<p class="muted small">Rare today: ${n.count ? `${fmt(n.count)} ${n.count === 1 ? 'baby' : 'babies'} in ${meta.years[0]}–${String(END).slice(2)}` : `under 3 a year in ${meta.years[0]}–${String(END).slice(2)}`}.</p>` : '';
+  const rare = n.classic ? `<p class="muted small">Rare today: ${n.count ? `${babies(n.count)} in ${meta.years[0]}–${String(END).slice(2)}` : `under 3 a year in ${meta.years[0]}–${String(END).slice(2)}`}.</p>` : '';
   const body = story.peak
     ? `${story.sentence ? `<p class="story">${esc(story.sentence)}</p>` : ''}${tiles}
        <p class="scope" style="--cc:var(--${colour})"><i class="dot"></i>${esc(where)}</p>${chartBlock(years, vals, story, END)}`
@@ -206,7 +206,7 @@ export function renderInfoHistory(n, current) {
       const p = h ? historyPanel(n, h) : null;
       if (!p) {
         target.innerHTML = n.classic
-          ? `<div class="panel">${ptitle('trend', 'orange', 'History')}<p class="muted">Peaked in ${n.classic.peak} with ${fmt(n.classic.peakCount)} ${n.classic.peakCount === 1 ? 'baby' : 'babies'}; ${fmt(n.classic.full)} births on record.</p></div>`
+          ? `<div class="panel">${ptitle('trend', 'orange', 'History')}<p class="muted">Peaked in ${n.classic.peak} with ${babies(n.classic.peakCount)}; ${fmt(n.classic.full)} births on record.</p></div>`
           : '';
         return;
       }
@@ -219,7 +219,7 @@ export function renderInfoHistory(n, current) {
           const r = chart.getBoundingClientRect();
           const i = Math.max(0, Math.min(len - 1, Math.floor(((e.clientX - r.left) / r.width) * len)));
           const v = p.vals[i];
-          read.textContent = `${p.years[i]} · ${v ? `${fmt(v)} ${v === 1 ? 'baby' : 'babies'}` : 'under 3'}`;
+          read.textContent = `${p.years[i]} · ${v ? babies(v) : 'under 3'}`;
           guide.style.left = `${(((i + 0.5) / len) * 100).toFixed(2)}%`;
           guide.hidden = false;
         };

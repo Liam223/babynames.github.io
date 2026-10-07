@@ -29,6 +29,17 @@ export const merged = () => state.settings.sex === 'both';   // boys and girls m
 export const decisionOf = (n) =>
   state.decisions[n.sex][n.key] || (merged() && n.alt ? state.decisions[n.alt.sex][n.alt.key] : undefined);
 
+// A name's own decision and rating (for its own sex only, ignoring its unisex twin).
+export const ownDecision = (n) => state.decisions[n.sex][n.key];
+export const ratingOf = (n) => state.elo[n.sex][n.key];
+
+// Record a decision. With `both`, the name's unisex twin gets the same decision.
+export function setDecision(n, d, both = false) {
+  state.decisions[n.sex][n.key] = d;
+  if (both && n.alt) state.decisions[n.alt.sex][n.alt.key] = d;
+}
+export function clearDecision(sex, key) { delete state.decisions[sex][key]; }
+
 // Decision counts. A name decided the same way in both sexes counts once.
 export function counts(sexes = sexesFor(state.settings.sex)) {
   const c = { no: 0, like: 0, love: 0 };
@@ -64,7 +75,7 @@ export function updateTabs() {
   tab.classList.toggle('locked', locked);
   if (locked) {
     tab.setAttribute('aria-disabled', 'true');
-    tab.dataset.lockMsg = `Like or love ${need} more ${lead === 'boys' ? 'boys’' : 'girls’'} name${need === 1 ? '' : 's'} to start comparing`;
+    tab.dataset.lockMsg = `Like or love ${need} more ${possessive(lead)} name${need === 1 ? '' : 's'} to start comparing`;
   } else {
     tab.removeAttribute('aria-disabled');
     delete tab.dataset.lockMsg;
@@ -77,6 +88,29 @@ export function updateTabs() {
 export const comparedIn = (pool) => (state.comparedBy && state.comparedBy[pool]) || 0;
 export const totalCompared = () => comparedIn('boys') + comparedIn('girls');
 export const poolSize = (pool) => Object.values(state.decisions[pool]).filter((d) => d === 'like' || d === 'love').length;
+
+// Small wording helpers shared by the screens.
+export const possessive = (sex) => (sex === 'boys' ? 'boys’' : 'girls’');
+export const sexWord = (sex) => (sex === 'boys' ? 'Boy' : 'Girl');
+export const babyWord = (k) => (k === 1 ? 'baby' : 'babies');
+export const babies = (k) => `${fmt(k)} ${babyWord(k)}`;
+// Irish if the name (or its twin, when one is passed or attached) is tagged Irish.
+export const irishOf = (n, alt = n.alt) => !!(n.irish || (alt && alt.irish));
+
+// Build an element: h('li', { class: 'x', 'aria-label': '…', onclick: fn }, 'text', childElement, …).
+// Strings and numbers become text nodes (never HTML). `html` is for trusted markup only (icons).
+export function h(tag, attrs = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === 'html') el.innerHTML = v;
+    else if (k === 'style') Object.assign(el.style, v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(typeof kid === 'object' ? kid : String(kid));
+  return el;
+}
 
 export const ptitle = (iconName, cls, text) => `<p class="panel-title"><span class="p-ic ${cls}">${icon(iconName, 16)}</span>${text}</p>`;
 // Escaping rule for HTML built from strings: anything that isn't a literal in this code (data files, saved state,

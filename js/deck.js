@@ -3,7 +3,7 @@ import { HISTORY_CAP } from './storage.js';
 import { sexesFor, isPrimary, trend, standout, COUNTRY_SHORT } from './names.js';
 import { icon } from './icons.js';
 import { attachSwipe } from './swipe.js';
-import { $, ui, state, data, screens, persist, announce, fmt, esc, merged, decisionOf, counts, summary, reduced, askPersistence } from './core.js';
+import { $, ui, state, data, screens, persist, announce, fmt, esc, babies, irishOf, merged, decisionOf, setDecision, clearDecision, counts, summary, reduced, askPersistence } from './core.js';
 import { openInfo } from './info.js';
 
 let queue = [];           // ordered name objects for the current filters
@@ -89,8 +89,8 @@ const trendSvg = (sh) => {
 function cardEl(n) {
   const both = merged() && n.alt;
   const meta = data[n.sex];
-  const irish = n.irish || (both && n.alt.irish);
-  const babies = n.count + (both ? n.alt.count : 0);
+  const irish = irishOf(n, both ? n.alt : null);
+  const total = n.count + (both ? n.alt.count : 0);
   const sexWord = (x) => (x.sex === 'boys' ? 'Boys' : 'Girls');
   const cl = n.classic;
   const old = cl && cl.peak <= 2005;      // peaked long ago = a classic; peaked more recently = a past favourite
@@ -131,8 +131,8 @@ function cardEl(n) {
   $('.hint', el).textContent = rankText;
   const b = $('.babies', el);
   b.textContent = cl
-    ? `Peaked in ${cl.peak} · ${fmt(cl.peakCount)} ${cl.peakCount === 1 ? 'baby' : 'babies'} that year`
-    : `${fmt(babies)} ${babies === 1 ? 'baby' : 'babies'}, ${years}`;
+    ? `Peaked in ${cl.peak} · ${babies(cl.peakCount)} that year`
+    : `${babies(total)}, ${years}`;
   if (tr) {
     const t = document.createElement('span');
     t.className = 'trend ' + tr.label.toLowerCase();
@@ -195,8 +195,7 @@ function decide(dir) {
   if (!current) return;
   const { name, src } = current;
   const both = merged() && name.alt;
-  state.decisions[name.sex][name.key] = dir;
-  if (both) state.decisions[name.alt.sex][name.alt.key] = dir;
+  setDecision(name, dir, both);
   state.history.push({ s: name.sex, k: name.key, d: dir, src, m: both ? 1 : 0 });
   if (state.history.length > HISTORY_CAP) state.history.splice(0, state.history.length - HISTORY_CAP);
   state.settings.hintSeen = true;
@@ -209,9 +208,9 @@ function decide(dir) {
 function undo() {
   const h = state.history.pop();
   if (!h) return;
-  delete state.decisions[h.s][h.k];
+  clearDecision(h.s, h.k);
   const n = data[h.s].byKey.get(h.k);
-  if (h.m && n && n.alt) delete state.decisions[n.alt.sex][n.alt.key];
+  if (h.m && n && n.alt) clearDecision(n.alt.sex, n.alt.key);
   if (h.src === 'p') { const p = `${h.s}:${h.k}`; if (!state.priority.includes(p)) state.priority.unshift(p); }
   else { const i = queue.indexOf(n); state.queue.pos = i >= 0 ? Math.min(state.queue.pos, i) : 0; }
   announce(`Undid ${n ? n.name : 'last choice'}`);

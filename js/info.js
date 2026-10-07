@@ -1,20 +1,12 @@
 // The details screen for one name: popularity, history, spellings, and origin/meaning/pronunciation.
 import { icon } from './icons.js';
-import { $, $$, state, data, ui, show, screens, fmt, esc, ptitle } from './core.js';
+import { $, $$, data, ui, show, screens, fmt, esc, ptitle, h, possessive, babyWord, irishOf, ownDecision, ratingOf } from './core.js';
 import { renderInfoHistory, resetHistory } from './history.js';
 
 let infoName = null;           // the name entry shown on the info screen
 let infoSex = null;            // which sex's figures (for unisex names)
 
-export function infoButton(n) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'mini info';
-  b.innerHTML = icon('info', 18);
-  b.setAttribute('aria-label', `About ${n.name}`);
-  b.addEventListener('click', () => openInfo(n));
-  return b;
-}
+export const infoButton = (n) => h('button', { type: 'button', class: 'mini info', 'aria-label': `About ${n.name}`, html: icon('info', 18), onclick: () => openInfo(n) });
 
 export function openInfo(n) {
   if (!n) return;
@@ -43,9 +35,8 @@ function renderInfo() {
   const base = infoName;
   const n = infoEntry();
   const meta = data[n.sex];
-  const noun = n.sex === 'boys' ? 'boys’' : 'girls’';
-  const babiesWord = (k) => (k === 1 ? 'baby' : 'babies');
-  const irish = n.irish || (n.alt && n.alt.irish);
+  const noun = possessive(n.sex);
+  const irish = irishOf(n);
   const cl = n.classic;
   const yrs = meta.years;
   const span = yrs.length ? `${yrs[0]}–${String(yrs[yrs.length - 1]).slice(2)}` : '';
@@ -58,8 +49,8 @@ function renderInfo() {
   if (irish) chips.push('<span class="ichip irish">☘️ Irish name</span>');
   if (cl) chips.push(`<span class="ichip">${cl.peak <= 2005 ? 'Classic' : 'Past favourite'}</span>`);
   // your choice and rating sit with the other tags, on the right (nothing is shown until you've decided)
-  const dec = state.decisions[n.sex][n.key];
-  const rating = state.elo[n.sex][n.key];
+  const dec = ownDecision(n);
+  const rating = ratingOf(n);
   const choice = { love: ['star', 'Loved'], like: ['heart', 'Liked'], no: ['x', 'Eliminated'] }[dec];
   if (choice) {
     const cmp = rating && rating.n;
@@ -93,7 +84,7 @@ function renderInfo() {
     out.push(`<div class="panel">${ptitle('award', 'yellow', 'Popularity')}
       <div class="istats">
         <div><b>#${fmt(n.rank)}</b><span>${esc(noun)} names, UK &amp; Ireland</span></div>
-        <div><b>${fmt(n.count)}</b><span>${babiesWord(n.count)}, ${esc(span)}</span></div>
+        <div><b>${fmt(n.count)}</b><span>${babyWord(n.count)}, ${esc(span)}</span></div>
         <div><b>${oneIn ? `1 in ${fmt(oneIn)}` : '–'}</b><span>of all ${esc(noun)} births</span></div>
       </div>
       <p class="muted small">Rank and babies are for ${esc(span)} (five years combined), all four countries together.</p></div>`);
@@ -141,7 +132,7 @@ function aboutPanel(n, it) {
   if (it.i && it.i.length) {
     rows.push(`<p class="irow"><span class="irow-label">IPA</span>${it.i.map(([ipa, label]) => `<span class="ipa">${esc(ipa)} <small>${esc(label)}</small></span>`).join('')}</p>`);
   }
-  if (say && (n.irish || (n.alt && n.alt.irish))) {
+  if (say && irishOf(n)) {
     rows.push('<p class="muted small">Irish names are pronounced differently in different regions, so treat this as a guide.</p>');
   }
   if (it.o) rows.push(`<p class="irow"><span class="irow-label">Origin</span>${esc(it.o)}</p>`);

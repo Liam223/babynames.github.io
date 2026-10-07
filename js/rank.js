@@ -1,7 +1,7 @@
 // Compare ("This or that?"): head-to-head votes inside one sex's pool, plus the ranked list rows built from the ratings.
 import { CONFIG, startRating, applyResult, pickPair, pairKey } from './elo.js';
 import { icon } from './icons.js';
-import { $, $$, state, data, ui, screens, persist, announce, fmt, statLine, reduced, poolSize, comparedIn } from './core.js';
+import { $, $$, state, data, ui, screens, persist, announce, fmt, statLine, reduced, poolSize, comparedIn, h, possessive, irishOf } from './core.js';
 
 /* ---------- ranking (this-or-that) ---------- */
 // Comparing happens inside one sex's pool at a time: boys' names, or girls' names. A unisex name is in both
@@ -71,7 +71,7 @@ function renderRank(pair = null) {
     radio.disabled = p !== pool && poolSize(p) < 2;
     $(`#pool-n-${p}`).textContent = poolSize(p);
   }
-  const noun = pool === 'boys' ? 'boys’' : 'girls’';
+  const noun = possessive(pool);
   const done = comparedIn(pool);
   $('#rank-progress').textContent = `${fmt(done)} comparison${done === 1 ? '' : 's'} · ${fmt(items.length)} ${noun} names in the running`;
   $('#rank-hint').hidden = done < Math.max(CONFIG.hintAfter, hintNext(pool));
@@ -86,13 +86,11 @@ function renderRank(pair = null) {
   rankPair = pair && pair.every((p) => items.some((i) => i.id === p.id)) ? pair
     : pickPair(items, eloEntry, { last: rankLast, seen: rankSeen, compared: done });
   rankPair.forEach((it, side) => {
-    const opt = document.createElement('div');
-    opt.className = 'opt';
     const pick = document.createElement('button');
     pick.type = 'button';
     pick.className = 'pick ' + it.d;
     pick.setAttribute('aria-label', `I prefer ${it.n.name}`);
-    const irish = it.n.irish || (it.n.alt && it.n.alt.irish);
+    const irish = irishOf(it.n);
     const rank = `${it.n.alt ? 'Unisex · ' : ''}${statLine(it.n)}`;
     pick.innerHTML = `<span class="tag">${icon(it.d === 'love' ? 'star' : 'heart', 15)}${it.d === 'love' ? 'Loved' : 'Liked'}</span>
       <span class="pn"></span>${irish ? '<span class="badge" role="img" aria-label="Irish name">☘️</span>' : ''}<span class="pi"></span>`;
@@ -100,9 +98,8 @@ function renderRank(pair = null) {
     $('.pn', pick).style.setProperty('--len', String(Math.max(6, it.n.name.length)));
     $('.pi', pick).textContent = rank;
     pick.addEventListener('click', () => choose(side));
-    opt.append(pick);
-    stage.append(opt);
-    if (side === 0) { const or = document.createElement('div'); or.className = 'or'; or.setAttribute('aria-hidden', 'true'); or.textContent = 'or'; stage.append(or); }
+    stage.append(h('div', { class: 'opt' }, pick));
+    if (side === 0) stage.append(h('div', { class: 'or', 'aria-hidden': 'true' }, 'or'));
   });
 }
 

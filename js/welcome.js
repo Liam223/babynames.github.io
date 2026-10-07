@@ -1,6 +1,6 @@
 // The welcome screen: the filters (sex, popularity, Irish, starting letters) and how many names are left.
 import { SEXES, sexesFor } from './names.js';
-import { $, $$, state, data, show, screens, persist, fmt, counts } from './core.js';
+import { $, $$, state, data, show, screens, persist, fmt, counts, h } from './core.js';
 import { candidates, buildQueue, remainingCount } from './deck.js';
 
 const POP_HELP = {
@@ -55,14 +55,14 @@ function setSetting(patch) {
 function initLetters() {
   const box = $('#letters');
   for (const L of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chip'; b.textContent = L; b.setAttribute('aria-pressed', 'false');
-    b.addEventListener('click', () => {
-      const set = new Set(state.settings.letters);
-      set.has(L) ? set.delete(L) : set.add(L);
-      setSetting({ letters: [...set].sort() });
-    });
-    box.append(b);
+    box.append(h('button', {
+      type: 'button', class: 'chip', 'aria-pressed': 'false',
+      onclick: () => {
+        const set = new Set(state.settings.letters);
+        set.has(L) ? set.delete(L) : set.add(L);
+        setSetting({ letters: [...set].sort() });
+      },
+    }, L));
   }
   $('#letters-clear').addEventListener('click', () => setSetting({ letters: [] }));
 }

@@ -1,7 +1,7 @@
 // My list: Ranked / Loved / Liked / Eliminated tabs, with search, a boys/girls filter and sorting.
 import { SEXES, nameKey } from './names.js';
 import { icon } from './icons.js';
-import { $, $$, state, data, screens, persist, announce, fmt, statLine, poolSize, totalCompared } from './core.js';
+import { $, $$, state, data, screens, persist, announce, fmt, statLine, poolSize, totalCompared, h, possessive, sexWord, irishOf, setDecision } from './core.js';
 import { rankedRows, rankedSex, sexOk, setRankedSex } from './rank.js';
 import { infoButton } from './info.js';
 
@@ -10,6 +10,9 @@ let listSort = 'rank';
 let listLimit = 100;
 let listQuery = '';
 let listSex = 'both';          // My list filter: both | boys | girls
+
+// The name (with a ☘️ for Irish names) and a smaller line under it, shared by both kinds of row.
+const nameBlock = (n, alt, sub, ...extra) => h('span', { class: 'nm' }, h('span', {}, n.name + (irishOf(n, alt) ? ' ☘️' : '')), h('small', {}, sub), ...extra);
 
 // Rows for a tab. A name decided the same way for boys and girls is one row (with `alt` set).
 function rowsFor(tab) {
@@ -55,42 +58,27 @@ function renderList() {
   $('.lbl', sortBtn).textContent = listTab === 'ranked' ? 'Rating' : listSort === 'az' ? 'A–Z' : 'Popular';
   const rows = listRows(listTab);
   if (!rows.length) {
-    const li = document.createElement('li');
-    li.className = 'none';
-    li.textContent = listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
-      : listTab === 'ranked' ? `Nothing ranked for ${rankedSex()} yet. Like or love a few ${rankedSex() === 'boys' ? 'boys’' : 'girls’'} names, then compare them.`
+    ul.append(h('li', { class: 'none' }, listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
+      : listTab === 'ranked' ? `Nothing ranked for ${rankedSex()} yet. Like or love a few ${possessive(rankedSex())} names, then compare them.`
       : listSex !== 'both' ? `No ${listSex} here yet.`
       : listTab === 'ranked' ? 'Nothing to rank yet. Like or love some names first.'
-      : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!';
-    ul.append(li);
+      : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!'));
   }
   for (const row of rows.slice(0, listLimit)) {
     if (listTab === 'ranked') { ul.append(rankedRowEl(row)); continue; }
     const { n, alt } = row;
-    const li = document.createElement('li');
-    const nm = document.createElement('span');
-    nm.className = 'nm';
-    const title = document.createElement('span');
-    title.textContent = n.name + (n.irish || (alt && alt.irish) ? ' ☘️' : '');
-    const small = document.createElement('small');
-    small.textContent = alt
+    const li = h('li', {}, nameBlock(n, alt, alt
       ? `Unisex · #${fmt(n.rank)} boys, #${fmt(alt.rank)} girls`
-      : `${n.sex === 'boys' ? 'Boy' : 'Girl'} · ${statLine(n)}`;
-    nm.append(title, small);
-    li.append(nm);
-    li.append(infoButton(n));
-    const act = (iconName, cls, to, aria, text = '') => {
-      const b = document.createElement('button');
-      b.className = 'mini ' + cls;
-      b.innerHTML = icon(iconName, 18) + (text ? `<span>${text}</span>` : '');
-      b.setAttribute('aria-label', `${aria} ${n.name}`);
-      b.addEventListener('click', () => {
-        state.decisions[n.sex][n.key] = to;
-        if (alt) state.decisions[alt.sex][alt.key] = to;
+      : `${sexWord(n.sex)} · ${statLine(n)}`), infoButton(n));
+    const act = (iconName, cls, to, aria, text = '') => li.append(h('button', {
+      class: 'mini ' + cls,
+      'aria-label': `${aria} ${n.name}`,
+      html: icon(iconName, 18) + (text ? `<span>${text}</span>` : ''),
+      onclick: () => {
+        setDecision(n, to, !!alt);
         persist(); announce(`${n.name} moved`); renderList();
-      });
-      li.append(b);
-    };
+      },
+    }));
     if (listTab === 'no') act('undo', 'restore', 'like', 'Restore', 'Restore');
     if (listTab === 'like') act('star', 'love', 'love', 'Love');
     if (listTab === 'love') act('heart', 'like', 'like', 'Move to liked:');
@@ -101,42 +89,22 @@ function renderList() {
 }
 
 // A row on the Ranked tab: position, rating bar, score.
-function rankedRowEl({ n, alt, e, d, pos, pct, pool }) {
-  const li = document.createElement('li');
-  li.className = 'ranked' + (pos <= 3 ? ' top' + pos : '');
-  const badge = document.createElement('span');
-  badge.className = 'pos';
-  badge.textContent = pos;
-  const nm = document.createElement('span');
-  nm.className = 'nm';
-  const title = document.createElement('span');
-  title.textContent = n.name + (n.irish || (alt && alt.irish) ? ' ☘️' : '');
-  const small = document.createElement('small');
-  const who = alt ? 'Unisex' : n.sex === 'boys' ? 'Boy' : 'Girl';
-  small.textContent = `${who} · ${d === 'love' ? 'Loved' : 'Liked'} · ${e.n ? `${e.n} comparison${e.n === 1 ? '' : 's'}` : 'not compared yet'}`;
-  const bar = document.createElement('span');
-  bar.className = 'bar';
-  bar.setAttribute('role', 'img');
-  bar.setAttribute('aria-label', `Rating ${Math.round(e.r)}`);
-  const fill = document.createElement('span');
-  fill.className = 'fill ' + d;
-  fill.style.width = pct + '%';
-  bar.append(fill);
-  nm.append(title, small, bar);
-  const score = document.createElement('span');
-  score.className = 'score';
-  score.textContent = fmt(Math.round(e.r));
-  const rm = document.createElement('button');
-  rm.type = 'button';
-  rm.className = 'mini no';
-  rm.innerHTML = icon('x', 18);
-  rm.setAttribute('aria-label', `Eliminate ${n.name}`);
-  rm.addEventListener('click', () => {
-    state.decisions[pool][n.key] = 'no';       // only this sex's pool; a unisex name can still be wanted in the other
-    persist(); announce(`${n.name} eliminated`); renderList();
-  });
-  li.append(badge, nm, score, infoButton(n), rm);
-  return li;
+function rankedRowEl({ n, alt, e, d, pos, pct }) {
+  const who = alt ? 'Unisex' : sexWord(n.sex);
+  const compared = e.n ? `${e.n} comparison${e.n === 1 ? '' : 's'}` : 'not compared yet';
+  const bar = h('span', { class: 'bar', role: 'img', 'aria-label': `Rating ${Math.round(e.r)}` }, h('span', { class: 'fill ' + d, style: { width: pct + '%' } }));
+  return h('li', { class: 'ranked' + (pos <= 3 ? ' top' + pos : '') },
+    h('span', { class: 'pos' }, pos),
+    nameBlock(n, alt, `${who} · ${d === 'love' ? 'Loved' : 'Liked'} · ${compared}`, bar),
+    h('span', { class: 'score' }, fmt(Math.round(e.r))),
+    infoButton(n),
+    h('button', {
+      type: 'button', class: 'mini no', 'aria-label': `Eliminate ${n.name}`, html: icon('x', 18),
+      onclick: () => {
+        setDecision(n, 'no');       // only this sex's pool; a unisex name can still be wanted in the other
+        persist(); announce(`${n.name} eliminated`); renderList();
+      },
+    }));
 }
 
 // Coming back from the info screen keeps your tab, search and filters; arriving fresh resets them.
