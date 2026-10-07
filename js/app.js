@@ -118,15 +118,16 @@ const COMPARE_MIN = 4;     // liked or loved names needed before comparing makes
 
 // The Compare tab is locked (greyed, with an 'N more' badge) until there are enough names.
 function updateTabs() {
-  const c = counts(SEXES);
-  const need = COMPARE_MIN - (c.like + c.love);
+  const sizes = { boys: poolSize('boys'), girls: poolSize('girls') };
+  const lead = sizes.girls > sizes.boys ? 'girls' : 'boys';        // the pool closest to being ready
+  const need = COMPARE_MIN - sizes[lead];
   const tab = $('.t-compare');
   if (!tab) return;
   const locked = need > 0;
   tab.classList.toggle('locked', locked);
   if (locked) {
     tab.setAttribute('aria-disabled', 'true');
-    tab.dataset.lockMsg = `Like or love ${need} more name${need === 1 ? '' : 's'} to start comparing`;
+    tab.dataset.lockMsg = `Like or love ${need} more ${lead === 'boys' ? 'boys’' : 'girls’'} name${need === 1 ? '' : 's'} to start comparing`;
   } else {
     tab.removeAttribute('aria-disabled');
     delete tab.dataset.lockMsg;
@@ -146,10 +147,14 @@ function show(name, opts = {}) {
   if (name === 'swipe') renderSwipe();
   for (const b of $$('.tab')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
   updateTabs();
-  if (name === 'rank') renderRank();
+  if (name === 'rank') {
+    const p = defaultPool();
+    if (p !== rankPool) { rankPool = p; rankUndo = []; rankLast = null; }
+    renderRank();
+  }
   if (name === 'list') {
     listQuery = ''; $('#list-search').value = ''; listLimit = 100;
-    const has = (t) => (t === 'ranked' ? state.compared > 0 && rankedRows().length >= 2 : rowsFor(t).length > 0);
+    const has = (t) => (t === 'ranked' ? totalCompared() > 0 && poolSize(rankedSex()) >= 2 : rowsFor(t).length > 0);
     listTab = opts.tab || ['ranked', 'love', 'like', 'no'].find(has) || 'love';
     renderList();
   }
@@ -363,7 +368,7 @@ function rowsFor(tab) {
 function listRows(tab) {
   const q = nameKey(listQuery.trim());
   const keep = (n) => !q || nameKey(n.name).includes(q) || n.variants.some((v) => nameKey(v).includes(q));
-  if (tab === 'ranked') return rankedRows(listSex).filter((r) => keep(r.n));
+  if (tab === 'ranked') return rankedRows(rankedSex()).filter((r) => keep(r.n));
   const rows = rowsFor(tab).filter((r) => sexOk(r, listSex) && keep(r.n));
   if (listSort === 'az') rows.sort((a, b) => a.n.name.localeCompare(b.n.name, 'en'));
   else rows.sort((a, b) => a.n.rank - b.n.rank || a.n.name.localeCompare(b.n.name, 'en'));
@@ -378,7 +383,9 @@ function renderList() {
     b.setAttribute('aria-selected', String(b.dataset.tab === listTab));
     $('.n', b).textContent = fmt(listRows(b.dataset.tab).length);
   }
-  $$('input[name=listsex]').forEach((i) => { i.checked = i.value === listSex; });
+  // Ranked shows one sex at a time (ratings aren't comparable across sexes), so "Both" is unavailable there.
+  const onRanked = listTab === 'ranked';
+  $$('input[name=listsex]').forEach((i) => { i.checked = i.value === (onRanked ? rankedSex() : listSex); i.disabled = onRanked && i.value === 'both'; });
   // Always in the row (so the pills never resize); on Ranked the order is fixed, so it just says so.
   const sortBtn = $('#sort-toggle');
   sortBtn.disabled = listTab === 'ranked';
@@ -388,6 +395,7 @@ function renderList() {
     const li = document.createElement('li');
     li.className = 'none';
     li.textContent = listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
+      : listTab === 'ranked' ? `Nothing ranked for ${rankedSex()} yet. Like or love a few ${rankedSex() === 'boys' ? 'boys’' : 'girls’'} names, then compare them.`
       : listSex !== 'both' ? `No ${listSex} here yet.`
       : listTab === 'ranked' ? 'Nothing to rank yet. Like or love some names first.'
       : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!';
@@ -429,33 +437,51 @@ function renderList() {
 }
 
 /* ---------- ranking (this-or-that) ---------- */
+// Comparing happens inside one sex's pool at a time: boys' names, or girls' names. A unisex name is in both
+// pools (decisions are stored per sex) and has a separate rating in each, so ratings are never compared across pools.
+let rankPool = null;              // 'boys' | 'girls'
 let rankPair = null;              // [item, item] currently on screen
 let rankLast = null;              // key of the previous pair (never repeated straight away)
 const rankSeen = new Set();       // pairs already shown this session
-let rankUndo = [];                // votes that can be undone (this session only)
+let rankUndo = [];                // votes that can be undone (this session, this pool)
 let rankBusy = false;
+let rankedSexSel = null;          // Ranked tab: chosen sex (null = automatic)
 
-// Everything currently Liked or Loved (a unisex name decided the same way for both sexes is one item).
-function rankItems() {
+const comparedIn = (pool) => (state.comparedBy && state.comparedBy[pool]) || 0;
+const totalCompared = () => comparedIn('boys') + comparedIn('girls');
+const poolSize = (pool) => Object.values(state.decisions[pool]).filter((d) => d === 'like' || d === 'love').length;
+
+// Liked or loved names in one pool.
+function rankItems(pool) {
   const out = [];
-  for (const d of ['love', 'like']) {
-    for (const { n, alt } of rowsFor(d)) out.push({ id: `${n.sex}:${n.key}`, n, alt, d });
+  for (const [key, d] of Object.entries(state.decisions[pool])) {
+    if (d !== 'like' && d !== 'love') continue;
+    const n = data[pool] && data[pool].byKey.get(key);
+    if (n) out.push({ id: `${pool}:${key}`, pool, n, d });
   }
   return out;
 }
 
+// Which pool to show first: the one last used (if it can be compared), otherwise the one with more names.
+function defaultPool() {
+  const last = state.settings.lastPool;
+  if (last && poolSize(last) >= 2) return last;
+  return poolSize('girls') > poolSize('boys') ? 'girls' : 'boys';
+}
+const rankedSex = () => rankedSexSel || defaultPool();
+
 function eloEntry(it) {
-  const store = state.elo[it.n.sex];
+  const store = state.elo[it.pool];
   if (!store[it.n.key]) store[it.n.key] = { r: startRating(it.d), n: 0 };
   return store[it.n.key];
 }
 
-// Ranked list: by rating, with a position and a bar width (relative to the pool).
-// A unisex item (same decision for both sexes) belongs to both the Boys and the Girls filter.
+// Used by the Boys / Girls filter on My list (a name decided the same way for both sexes is one row).
 const sexOk = (row, sex) => sex === 'both' || !!row.alt || row.n.sex === sex;
 
-function rankedRows(sex = 'both') {
-  const items = rankItems().filter((it) => sexOk(it, sex)).map((it) => ({ ...it, e: eloEntry(it) }));
+// Ranked list for one pool: by rating, with a position and a bar width relative to that pool.
+function rankedRows(pool) {
+  const items = rankItems(pool).map((it) => ({ ...it, alt: it.n.alt, e: eloEntry(it) }));
   items.sort((a, b) => b.e.r - a.e.r || a.n.name.localeCompare(b.n.name, 'en'));
   const hi = items.length ? items[0].e.r : 0;
   const lo = items.length ? items[items.length - 1].e.r : 0;
@@ -492,23 +518,38 @@ function rankedRowEl({ n, alt, e, d, pos, pct }) {
   return li;
 }
 
+// The "check your top 10" tip returns after another hintAfter comparisons in the same pool once dismissed.
+function hintNext(pool) {
+  const v = state.settings.rankHintNext;
+  return v && typeof v === 'object' ? v[pool] || 0 : v || 0;
+}
+
 function renderRank(pair = null) {
   document.body.dataset.sex = 'both';
-  const items = rankItems();
+  const pool = rankPool;
+  const items = rankItems(pool);
   const stage = $('#rank-stage');
   stage.textContent = '';
-  $('#rank-progress').textContent = `${fmt(state.compared)} comparison${state.compared === 1 ? '' : 's'} · ${fmt(items.length)} names in the running`;
-  $('#rank-hint').hidden = state.compared < Math.max(CONFIG.hintAfter, state.settings.rankHintNext || 0);
+  for (const p of ['boys', 'girls']) {
+    const radio = $(`input[name=pool][value=${p}]`);
+    radio.checked = p === pool;
+    radio.disabled = p !== pool && poolSize(p) < 2;
+    $(`#pool-n-${p}`).textContent = poolSize(p);
+  }
+  const noun = pool === 'boys' ? 'boys’' : 'girls’';
+  const done = comparedIn(pool);
+  $('#rank-progress').textContent = `${fmt(done)} comparison${done === 1 ? '' : 's'} · ${fmt(items.length)} ${noun} names in the running`;
+  $('#rank-hint').hidden = done < Math.max(CONFIG.hintAfter, hintNext(pool));
   $('#rank-undo').disabled = rankUndo.length === 0;
   $('#rank-skip').disabled = items.length < 2;
   if (items.length < 2) {
     rankPair = null;
-    stage.innerHTML = `<div class="empty"><h2>Not enough names yet</h2><p class="muted">Like or love at least two names, then come back to compare them.</p>
+    stage.innerHTML = `<div class="empty"><h2>Not enough names yet</h2><p class="muted">Like or love at least two ${noun} names, then come back to compare them.</p>
       <button class="btn primary" data-go="swipe">Back to swiping</button></div>`;
     return;
   }
   rankPair = pair && pair.every((p) => items.some((i) => i.id === p.id)) ? pair
-    : pickPair(items, eloEntry, { last: rankLast, seen: rankSeen, compared: state.compared });
+    : pickPair(items, eloEntry, { last: rankLast, seen: rankSeen, compared: done });
   rankPair.forEach((it, side) => {
     const opt = document.createElement('div');
     opt.className = 'opt';
@@ -516,8 +557,8 @@ function renderRank(pair = null) {
     pick.type = 'button';
     pick.className = 'pick ' + it.d;
     pick.setAttribute('aria-label', `I prefer ${it.n.name}`);
-    const irish = it.n.irish || (it.alt && it.alt.irish);
-    const rank = it.alt ? `Boys #${fmt(it.n.rank)} · Girls #${fmt(it.alt.rank)}` : `#${fmt(it.n.rank)} · ${fmt(it.n.count)} babies`;
+    const irish = it.n.irish || (it.n.alt && it.n.alt.irish);
+    const rank = `${it.n.alt ? 'Unisex · ' : ''}#${fmt(it.n.rank)} · ${fmt(it.n.count)} babies`;
     pick.innerHTML = `<span class="tag">${icon(it.d === 'love' ? 'star' : 'heart', 15)}${it.d === 'love' ? 'Loved' : 'Liked'}</span>
       <span class="pn"></span>${irish ? '<span class="badge" role="img" aria-label="Irish name">☘️</span>' : ''}<span class="pi"></span>`;
     $('.pn', pick).textContent = it.n.name;
@@ -536,6 +577,14 @@ function renderRank(pair = null) {
   });
 }
 
+function setRankPool(pool) {
+  rankPool = pool;
+  state.settings.lastPool = pool;
+  rankUndo = []; rankLast = null;
+  persist();
+  renderRank();
+}
+
 function choose(side) {
   if (!rankPair || rankBusy) return;
   const [w, l] = side === 0 ? rankPair : [rankPair[1], rankPair[0]];
@@ -543,7 +592,8 @@ function choose(side) {
   rankUndo.push({ w, l, ew: { ...ew }, el: { ...el }, last: rankLast });
   if (rankUndo.length > 50) rankUndo.shift();
   applyResult(ew, el);
-  state.compared++;
+  state.comparedBy[rankPool] = comparedIn(rankPool) + 1;
+  state.settings.lastPool = rankPool;
   const key = pairKey(w, l);
   rankLast = key; rankSeen.add(key);
   persist();
@@ -566,17 +616,17 @@ function undoRank() {
   if (!u) return;
   Object.assign(eloEntry(u.w), u.ew);
   Object.assign(eloEntry(u.l), u.el);
-  state.compared = Math.max(0, state.compared - 1);
+  state.comparedBy[rankPool] = Math.max(0, comparedIn(rankPool) - 1);
   rankLast = u.last;
   persist(); announce('Undid last comparison');
   renderRank([u.w, u.l]);
 }
 
+// Removing a name from a pool only affects that sex (a unisex name can still be wanted in the other pool).
 function removeFromRank(side) {
   if (!rankPair || rankBusy) return;
   const it = rankPair[side];
-  state.decisions[it.n.sex][it.n.key] = 'no';
-  if (it.alt) state.decisions[it.alt.sex][it.alt.key] = 'no';
+  state.decisions[rankPool][it.n.key] = 'no';
   rankUndo = rankUndo.filter((u) => u.w.id !== it.id && u.l.id !== it.id);
   persist(); announce(`${it.n.name} removed`);
   renderRank();
@@ -619,6 +669,7 @@ function resetSelection() {
   if (!confirm(`Reset all your choices for ${label}? This can't be undone (export a backup first if unsure).`)) return;
   for (const sex of sexesFor(state.settings.sex)) { state.decisions[sex] = {}; state.elo[sex] = {}; }
   state.history = []; state.priority = []; state.queue.pos = 0; state.compared = 0;
+  for (const sex of sexesFor(state.settings.sex)) state.comparedBy[sex] = 0;
   persist(); flush(); $('#settings-msg').textContent = 'Reset done.';
 }
 
@@ -659,7 +710,7 @@ function init() {
   document.addEventListener('click', (e) => {
     const g = e.target.closest('[data-go]');
     if (g && g.getAttribute('aria-disabled') === 'true') { toast(g.dataset.lockMsg || 'Not available yet'); return; }
-    if (g) { const t = g.dataset.go; if (t === 'list-ranked') show('list', { tab: 'ranked' }); else show(t); }
+    if (g) { const t = g.dataset.go; if (t === 'list-ranked') { if (screen === 'rank' && rankPool) rankedSexSel = rankPool; show('list', { tab: 'ranked' }); } else show(t); }
   });
   $$('input[name=sex]').forEach((i) => i.addEventListener('change', () => setSetting({ sex: i.value })));
   $$('input[name=pop]').forEach((i) => i.addEventListener('change', () => setSetting({ pop: i.value })));
@@ -674,8 +725,12 @@ function init() {
   $('#btn-love').addEventListener('click', act('love'));
   $('#btn-undo').addEventListener('click', undo);
   $('#rank-skip').addEventListener('click', skipRank);
+  $$('input[name=pool]').forEach((i) => i.addEventListener('change', () => setRankPool(i.value)));
   $('#rank-hint-x').addEventListener('click', () => {
-    state.settings.rankHintNext = state.compared + CONFIG.hintAfter;   // show again after another 20 comparisons
+    const cur = state.settings.rankHintNext;
+    const next = cur && typeof cur === 'object' ? { ...cur } : { boys: cur || 0, girls: cur || 0 };
+    next[rankPool] = comparedIn(rankPool) + CONFIG.hintAfter;   // show again after another 20 comparisons here
+    state.settings.rankHintNext = next;
     persist(); $('#rank-hint').hidden = true;
   });
   $('#rank-undo').addEventListener('click', undoRank);
@@ -696,7 +751,7 @@ function init() {
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => { listTab = b.dataset.tab; listLimit = 100; renderList(); }));
   $('#sort-toggle').addEventListener('click', () => { listSort = listSort === 'az' ? 'rank' : 'az'; renderList(); });
   $('#list-search').addEventListener('input', (e) => { listQuery = e.target.value; listLimit = 100; renderList(); });
-  $$('input[name=listsex]').forEach((i) => i.addEventListener('change', () => { listSex = i.value; listLimit = 100; renderList(); }));
+  $$('input[name=listsex]').forEach((i) => i.addEventListener('change', () => { if (listTab === 'ranked') rankedSexSel = i.value; else listSex = i.value; listLimit = 100; renderList(); }));
   $('#list-more').addEventListener('click', () => { listLimit += 200; renderList(); });
 
   $('#nickname').addEventListener('input', (e) => { state.settings.nickname = e.target.value.trim(); persist(); });

@@ -10,13 +10,14 @@ export let storageOk = true;
 export function defaultState() {
   return {
     v: STATE_VERSION,
-    settings: { sex: 'both', irish: false, pop: 'all', letters: [], nickname: '', hintSeen: false, rankHintNext: 0 },
+    settings: { sex: 'both', irish: false, pop: 'all', letters: [], nickname: '', hintSeen: false, rankHintNext: { boys: 0, girls: 0 }, lastPool: null },
     decisions: { boys: {}, girls: {} },   // { nameKey: 'no' | 'like' | 'love' }
     elo: { boys: {}, girls: {} },         // { nameKey: { r: rating, n: comparisons } }
     queue: { seed: Math.floor(Math.random() * 2 ** 31), pos: 0 },
     priority: [],                          // "sex:key" names to show first (from share links)
     history: [],                           // [{ s, k, d, src }]
-    compared: 0,
+    compared: 0,                           // legacy total (kept so old saves load)
+    comparedBy: { boys: 0, girls: 0 },     // comparisons made in each pool
   };
 }
 
@@ -31,6 +32,8 @@ export function migrate(raw) {
   s.queue = { ...d.queue, ...(raw.queue || {}) };
   if (!Array.isArray(s.priority)) s.priority = [];
   if (!Array.isArray(s.history)) s.history = [];
+  s.comparedBy = { boys: 0, girls: 0, ...(raw.comparedBy || {}) };
+  if (!raw.comparedBy && raw.compared) s.comparedBy.boys = raw.compared;   // old saves had one shared count
   // if ((raw.v || 1) < 2) { ...future migrations here... }
   s.v = STATE_VERSION;
   return s;

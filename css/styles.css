@@ -396,3 +396,9 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 
 .sortbtn { width: 118px; justify-content: center; }
 .sortbtn:disabled { color: var(--muted); border-style: dashed; box-shadow: none; cursor: default; transform: none; }
+
+/* compare: Boys / Girls pool selector */
+.pool-seg { margin: 4px 0 10px; }
+.pool-seg span { min-height: 44px; }
+.cnt { margin-left: 6px; padding: 1px 7px; border-radius: 9px; background: color-mix(in srgb, currentColor 14%, transparent); font-size: .75rem; font-weight: 800; }
+.seg input:disabled + span { opacity: .5; border-style: dashed; box-shadow: none; cursor: not-allowed; }
