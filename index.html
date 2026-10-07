@@ -128,19 +128,14 @@
 
   <!-- My list -->
   <section id="screen-list" class="screen" hidden aria-labelledby="list-title">
-    <div class="topbar">
-      <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
-      <button id="rank-more" class="btn compare" data-go="rank" hidden><span data-icon="star" data-size="18"></span>Compare</button>
+    <div class="titlebar">
+      <button class="iconbtn" data-go="swipe" aria-label="Back to swiping"><span data-icon="arrow-left" data-size="22"></span></button>
+      <h1 id="list-title">My list</h1>
+      <button id="rank-more" class="btn compare" data-go="rank"><span data-icon="star" data-size="18"></span><span class="lbl">Compare</span></button>
     </div>
-    <h1 id="list-title"><span class="h-ic rose" data-icon="heart" data-size="22"></span>My list</h1>
     <div class="search">
       <span class="search-ic" data-icon="search" data-size="18"></span>
       <input id="list-search" type="search" placeholder="Search your list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search your list">
-    </div>
-    <div class="seg list-sex" role="radiogroup" aria-label="Show names for">
-      <label><input type="radio" name="listsex" value="both" checked><span>Both</span></label>
-      <label><input type="radio" name="listsex" value="boys"><span>Boys</span></label>
-      <label><input type="radio" name="listsex" value="girls"><span>Girls</span></label>
     </div>
     <div class="tabs" role="tablist" aria-label="List">
       <button role="tab" data-tab="ranked">Ranked <span class="n"></span></button>
@@ -148,10 +143,13 @@
       <button role="tab" data-tab="like">Liked <span class="n"></span></button>
       <button role="tab" data-tab="no">Eliminated <span class="n"></span></button>
     </div>
-    <div class="sort" role="group" aria-label="Sort by">
-      <span class="muted">Sort:</span>
-      <button data-sort="rank" aria-pressed="true">Popularity</button>
-      <button data-sort="az" aria-pressed="false">A–Z</button>
+    <div class="filters">
+      <div class="seg list-sex" role="radiogroup" aria-label="Show names for">
+        <label><input type="radio" name="listsex" value="both" checked><span>Both</span></label>
+        <label><input type="radio" name="listsex" value="boys"><span>Boys</span></label>
+        <label><input type="radio" name="listsex" value="girls"><span>Girls</span></label>
+      </div>
+      <button id="sort-toggle" class="sortbtn" type="button" aria-label="Change sort order"><span data-icon="sort" data-size="16"></span><span class="lbl">Popular</span></button>
     </div>
     <ul id="list" class="rows"></ul>
     <button id="list-more" class="btn ghost" hidden>Show more</button>
@@ -159,8 +157,10 @@
 
   <!-- Settings -->
   <section id="screen-settings" class="screen" hidden aria-labelledby="settings-title">
-    <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
-    <h1 id="settings-title"><span class="h-ic violet" data-icon="gear" data-size="22"></span>Settings</h1>
+    <div class="titlebar">
+      <button class="iconbtn" data-go="swipe" aria-label="Back to swiping"><span data-icon="arrow-left" data-size="22"></span></button>
+      <h1 id="settings-title">Settings</h1>
+    </div>
     <div class="panel">
       <p class="panel-title"><span class="p-ic violet" data-icon="user" data-size="18"></span>Your nickname</p>
       <label class="field">Used when you share your list with a partner

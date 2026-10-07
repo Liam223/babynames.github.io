@@ -354,11 +354,11 @@ function renderList() {
   ul.textContent = '';
   for (const b of $$('.tabs button')) {
     b.setAttribute('aria-selected', String(b.dataset.tab === listTab));
-    $('.n', b).textContent = `(${fmt(listRows(b.dataset.tab).length)})`;
+    $('.n', b).textContent = fmt(listRows(b.dataset.tab).length);
   }
-  for (const b of $$('.sort button')) b.setAttribute('aria-pressed', String(b.dataset.sort === listSort));
   $$('input[name=listsex]').forEach((i) => { i.checked = i.value === listSex; });
-  $('.sort').hidden = listTab === 'ranked';
+  $('#sort-toggle').hidden = listTab === 'ranked';
+  $('#sort-toggle .lbl').textContent = listSort === 'az' ? 'A–Z' : 'Popular';
   const rows = listRows(listTab);
   if (!rows.length) {
     const li = document.createElement('li');
@@ -402,7 +402,10 @@ function renderList() {
     ul.append(li);
   }
   $('#list-more').hidden = rows.length <= listLimit;
-  $('#rank-more').hidden = rankedRows().length < 2;
+  const need = 4 - rankedRows().length;                // same threshold as the Rank button on the swipe screen
+  const cmp = $('#rank-more');
+  cmp.disabled = need > 0;
+  $('.lbl', cmp).textContent = need > 0 ? `Compare · ${need} more` : 'Compare';
 }
 
 /* ---------- ranking (this-or-that) ---------- */
@@ -655,7 +658,7 @@ function init() {
   });
 
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => { listTab = b.dataset.tab; listLimit = 100; renderList(); }));
-  $$('.sort button').forEach((b) => b.addEventListener('click', () => { listSort = b.dataset.sort; renderList(); }));
+  $('#sort-toggle').addEventListener('click', () => { listSort = listSort === 'az' ? 'rank' : 'az'; renderList(); });
   $('#list-search').addEventListener('input', (e) => { listQuery = e.target.value; listLimit = 100; renderList(); });
   $$('input[name=listsex]').forEach((i) => i.addEventListener('change', () => { listSex = i.value; listLimit = 100; renderList(); }));
   $('#list-more').addEventListener('click', () => { listLimit += 200; renderList(); });

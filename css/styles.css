@@ -246,8 +246,7 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .search input { width: 100%; min-height: 48px; padding: 0 14px 0 42px; border-radius: 14px; border: 2px solid var(--edge); background: var(--surface); }
 .list-sex { margin: 0 0 10px; }
 .list-sex span { min-height: 42px; }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
-@media (min-width: 460px) { .tabs { grid-template-columns: repeat(4, 1fr); } }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 12px; }
 .tabs button { flex: 1; min-height: 48px; border-radius: 14px; border: 2px solid var(--edge); background: var(--surface); font-weight: 700; padding: 0 4px; font-size: .9rem; white-space: nowrap; box-shadow: 0 2px 0 var(--edge); }
 .tabs button[aria-selected="true"] { background: var(--blue); color: var(--on-blue); border-color: var(--blue); box-shadow: none; }
 .sort { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
@@ -334,3 +333,26 @@ details.letters > summary::after { content: ""; width: 10px; height: 10px; margi
 details.letters[open] > summary::after { margin-top: 4px; transform: rotate(-135deg); }
 details.letters[open] > summary { border-color: var(--blue); box-shadow: 0 2px 0 var(--blue); }
 details.letters .chips { margin-top: 12px; }
+
+/* My list / Settings title row */
+.titlebar { display: flex; align-items: center; gap: 10px; margin: 8px 0 12px; }
+.titlebar h1 { margin: 0; flex: 1; min-width: 0; }
+.iconbtn { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--green); color: var(--on-green); border: 2px solid var(--green); box-shadow: 0 2px 0 var(--green-d); }
+.iconbtn:active { transform: translateY(2px); box-shadow: none; }
+.titlebar .btn.compare { flex: none; }
+.btn.compare:disabled { background: transparent; color: var(--muted); border: 2px dashed var(--edge); box-shadow: none; }
+.btn.compare:disabled .icon { fill: none; }
+
+/* tabs: one row, label above a small count */
+.tabs button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 54px; padding: 0 2px; font-size: .82rem; line-height: 1.2; }
+.tabs .n { display: block; font-size: .8rem; font-weight: 800; color: var(--muted); }
+.tabs button[aria-selected="true"] .n { color: inherit; opacity: .9; }
+
+/* compact filter row */
+.filters { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+.filters .list-sex { flex: 1; margin: 0; gap: 6px; }
+.list-sex span { min-height: 40px; padding: 0 6px; font-size: .9rem; }
+.sortbtn { display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 40px; padding: 0 12px; border-radius: 14px; border: 2px solid var(--edge); background: var(--surface); font-weight: 700; font-size: .9rem; box-shadow: 0 2px 0 var(--edge); white-space: nowrap; }
+.sortbtn:active { transform: translateY(2px); box-shadow: none; }
+.titlebar h1 { font-size: 1.75rem; white-space: nowrap; }
+.titlebar .btn.compare { padding: 0 12px; font-size: .92rem; }
