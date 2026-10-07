@@ -107,10 +107,12 @@
     <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
     <h1 id="rank-title"><span class="h-ic yellow" data-icon="star" data-size="22"></span>Which do you prefer?</h1>
     <p id="rank-progress" class="muted"></p>
-    <div id="rank-hint" class="coach" hidden>
-      <p>Nice one. Have a look at your top 10 so far.</p>
-      <button class="btn green-btn" data-go="list-ranked">See my ranking</button>
-    </div>
+    <aside id="rank-hint" class="nudge" hidden aria-label="Tip">
+      <button id="rank-hint-x" class="nudge-x" type="button" aria-label="Dismiss"><span data-icon="x" data-size="18"></span></button>
+      <p class="nudge-title"><span data-icon="sparkle" data-size="20"></span>Nice one!</p>
+      <p class="nudge-text">Your favourites are starting to take shape. Have a look at your top 10 so far.</p>
+      <button class="btn nudge-btn" data-go="list-ranked">See my ranking<span data-icon="arrow" data-size="18"></span></button>
+    </aside>
     <div id="rank-stage" class="rank-stage"></div>
     <div class="subactions">
       <button id="rank-skip" class="btn ghost">Can't decide</button>

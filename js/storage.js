@@ -10,7 +10,7 @@ export let storageOk = true;
 export function defaultState() {
   return {
     v: STATE_VERSION,
-    settings: { sex: 'both', irish: false, pop: 'all', letters: [], nickname: '', hintSeen: false },
+    settings: { sex: 'both', irish: false, pop: 'all', letters: [], nickname: '', hintSeen: false, rankHintNext: 0 },
     decisions: { boys: {}, girls: {} },   // { nameKey: 'no' | 'like' | 'love' }
     elo: { boys: {}, girls: {} },         // { nameKey: { r: rating, n: comparisons } }
     queue: { seed: Math.floor(Math.random() * 2 ** 31), pos: 0 },

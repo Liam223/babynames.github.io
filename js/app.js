@@ -469,7 +469,7 @@ function renderRank(pair = null) {
   const stage = $('#rank-stage');
   stage.textContent = '';
   $('#rank-progress').textContent = `${fmt(state.compared)} comparison${state.compared === 1 ? '' : 's'} · ${fmt(items.length)} names in the running`;
-  $('#rank-hint').hidden = state.compared < CONFIG.hintAfter;
+  $('#rank-hint').hidden = state.compared < Math.max(CONFIG.hintAfter, state.settings.rankHintNext || 0);
   $('#rank-undo').disabled = rankUndo.length === 0;
   $('#rank-skip').disabled = items.length < 2;
   if (items.length < 2) {
@@ -490,8 +490,9 @@ function renderRank(pair = null) {
     const irish = it.n.irish || (it.alt && it.alt.irish);
     const rank = it.alt ? `Boys #${fmt(it.n.rank)} · Girls #${fmt(it.alt.rank)}` : `#${fmt(it.n.rank)} · ${fmt(it.n.count)} babies`;
     pick.innerHTML = `<span class="tag">${icon(it.d === 'love' ? 'star' : 'heart', 15)}${it.d === 'love' ? 'Loved' : 'Liked'}</span>
-      <span class="pn"></span><span class="pi"></span>`;
-    $('.pn', pick).textContent = it.n.name + (irish ? ' ☘️' : '');
+      <span class="pn"></span>${irish ? '<span class="badge" role="img" aria-label="Irish name">☘️</span>' : ''}<span class="pi"></span>`;
+    $('.pn', pick).textContent = it.n.name;
+    $('.pn', pick).style.setProperty('--len', String(Math.max(6, it.n.name.length)));
     $('.pi', pick).textContent = rank;
     pick.addEventListener('click', () => choose(side));
     const rm = document.createElement('button');
@@ -628,6 +629,10 @@ function init() {
   $('#btn-undo').addEventListener('click', undo);
   $('#btn-rank').addEventListener('click', () => show('rank'));
   $('#rank-skip').addEventListener('click', skipRank);
+  $('#rank-hint-x').addEventListener('click', () => {
+    state.settings.rankHintNext = state.compared + CONFIG.hintAfter;   // show again after another 20 comparisons
+    persist(); $('#rank-hint').hidden = true;
+  });
   $('#rank-undo').addEventListener('click', undoRank);
   document.addEventListener('keydown', (e) => {
     if (screen !== 'rank' || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
