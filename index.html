@@ -5,16 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Baby Name Swiper</title>
 <meta name="description" content="Swipe through UK and Irish baby names, then rank your favourites head to head. Free, private, no sign-up.">
-<meta name="theme-color" content="#FBF6F0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#17161C" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%B6%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#F2E4C4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1F1710" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="./icons/logo.svg" type="image/svg+xml">
 <link rel="preload" href="./fonts/fraunces-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body data-sex="both">
 <a class="skip" href="#main">Skip to content</a>
 <header class="top">
-  <button class="brand" data-go="welcome" aria-label="Baby Name Swiper home"><span class="logo" data-icon="heart" data-size="16"></span><span class="brand-text">Baby Name Swiper</span></button>
+  <button class="brand" data-go="welcome" aria-label="Baby Name Swiper home"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g font-family="Fraunces, Georgia, 'Times New Roman', serif" font-weight="700" font-size="21" text-anchor="middle">
+    <g transform="rotate(-3 17 17)"><rect x="4" y="4" width="26" height="26" rx="5" fill="#FFF8E6" stroke="#D5473B" stroke-width="4"/><text x="17" y="24" fill="#2F6DB5">B</text></g>
+    <g transform="rotate(4 47 17)"><rect x="34" y="4" width="26" height="26" rx="5" fill="#FFF8E6" stroke="#2F6DB5" stroke-width="4"/><text x="47" y="24" fill="#D5473B">A</text></g>
+    <g transform="rotate(3 17 47)"><rect x="4" y="34" width="26" height="26" rx="5" fill="#FFF8E6" stroke="#F3C13A" stroke-width="4"/><text x="17" y="54" fill="#3E9150">B</text></g>
+    <g transform="rotate(-4 47 47)"><rect x="34" y="34" width="26" height="26" rx="5" fill="#FFF8E6" stroke="#3E9150" stroke-width="4"/><text x="47" y="54" fill="#D5473B">Y</text></g>
+  </g>
+</svg><span class="brand-text">Baby Name Swiper</span></button>
   <nav aria-label="Main">
     <button class="nav-btn nav-list" data-go="list" aria-label="My list"><span data-icon="heart" data-size="20"></span><span class="nav-label">My list</span></button>
     <button class="nav-btn nav-settings" data-go="settings" aria-label="Settings"><span data-icon="gear" data-size="20"></span><span class="nav-label">Settings</span></button>
@@ -72,7 +78,7 @@
   <!-- Swipe -->
   <section id="screen-swipe" class="screen" hidden aria-label="Swipe round">
     <div id="coach" class="coach" hidden>
-      <p><span class="k">←</span> No &nbsp; <span class="k">→</span> Like &nbsp; <span class="k">↑</span> Love</p>
+      <p><span class="k k-no">←</span> No &nbsp; <span class="k k-like">→</span> Like &nbsp; <span class="k k-love">↑</span> Love</p>
       <p class="muted">Swipe the card or use the buttons.</p>
       <button id="coach-ok" class="link" type="button">Got it</button>
     </div>
