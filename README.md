@@ -14,6 +14,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Liam223/babynames.github.io/actions/workflows/pages.yml"><img alt="Test and deploy" src="https://github.com/Liam223/babynames.github.io/actions/workflows/pages.yml/badge.svg"></a>
   <img alt="Static site" src="https://img.shields.io/badge/site-static-3E9150">
   <img alt="No build step" src="https://img.shields.io/badge/build-none-2F6DB5">
   <img alt="Vanilla JS" src="https://img.shields.io/badge/JavaScript-vanilla%20ES%20modules-F3C13A">
@@ -102,7 +103,7 @@ npm test
 npm run e2e
 ```
 
-They click through the real app: swiping (buttons, keyboard and a drag), undo, Compare, My list, the details screen and its history chart, backup export/import/reset, and reloads keeping your choices. Each test fails on any console error. A second group runs [axe](https://github.com/dequelabs/axe-core) accessibility checks on every screen in light and dark mode. In CI these run as their own job, so they report separately from the unit tests that gate the deploy.
+They click through the real app: swiping (buttons, keyboard and a drag), undo, Compare, My list, the details screen and its history chart, backup export/import/reset, and reloads keeping your choices. Each test fails on any console error. A second group runs [axe](https://github.com/dequelabs/axe-core) accessibility checks on every screen in light and dark mode. In CI these run as their own job, so they report separately from the unit tests that gate the deploy. Both jobs write a results table to the run's Summary page, and failures appear as annotations on the commit.
 
 ### Retaking the README screenshots
 
@@ -114,7 +115,11 @@ This opens the app with a fixed demo state, saves the six images in `docs/screen
 
 ### Deploying
 
-GitHub Pages serves the `main` branch from the repository root. `.nojekyll` makes Pages serve every file as-is. It is a *project site*, so the app lives under `/babynames.github.io/` and **every asset path must be relative** (`./data/boys.json`, never `/data/boys.json`).
+Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml): the unit tests first, then, only if they pass, a deploy of the repository root to GitHub Pages. The browser tests run as a separate job and don't gate the deploy. Pull requests run the tests but never deploy.
+
+One-off setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. (The older "Deploy from a branch" mode would build the site a second time on every push.)
+
+It is a *project site*, so the app lives under `/babynames.github.io/` and **every asset path must be relative** (`./data/boys.json`, never `/data/boys.json`).
 
 ---
 
@@ -153,14 +158,17 @@ scripts/
   build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
   build-history.py      Builds data/history/*.json from the raw files in data-src/ (offline)
   screenshots.mjs       Retakes the README screenshots and refreshes their tags (`npm run screenshots`)
+  gh-test-reporter.mjs  Test reporter for Actions: results table and failure annotations
   serve.py              Local static server
 data-src/
   irish-names.txt       Curated Irish-origin names (committed)
   irish-review.txt      Names tagged by pattern only / left untagged as uncertain
   respellings.txt       Hand-written, approximate, UNVERIFIED pronunciation respellings (fallback only)
 test/                   Node unit tests (`npm test`)
-e2e/                    Playwright browser tests (`npm run e2e`)
-package.json            Test and serve scripts (no dependencies)
+e2e/                    Playwright browser tests (`npm run e2e`) and their summary reporter
+package.json            Test, screenshot and serve scripts (dev dependencies only: Playwright and axe)
+playwright.config.js    Browser-test settings (phone-sized Chromium, local server)
+.github/workflows/      pages.yml: test, browser-test, deploy
 docs/screenshots/       Images used in this README
 BRIEF.md                The original build brief
 ```
@@ -192,7 +200,7 @@ Ratings use Elo. All numbers live in `CONFIG` in [`js/elo.js`](js/elo.js):
 | `hintAfter` | 20 | Comparisons before suggesting "check your top 10" |
 | `topTestChance` / `topN` | 0.15 / 3 | How often a round features one of the current leaders |
 
-After each vote, with `E` the expected score from the rating gap (`1 / (1 + 10^((Rb - Ra)/400))`), the winner gains `K × (1 − E)` and the loser loses `K × E`. Pairs prefer names with the fewest comparisons and similar ratings, never repeat the previous pair, and avoid pairs already shown this session.
+After each vote, with `E` the expected score from the rating gap (`1 / (1 + 10^((Rb - Ra)/400))`), the winner gains `K × (1 − E)` and the loser loses `K × (1 − E)` (the same amount when both names have the same `K`, so a favourite beating an underdog moves them little, and an upset moves them a lot). Pairs prefer names with the fewest comparisons and similar ratings, never repeat the previous pair, and avoid pairs already shown this session.
 
 > In simulations with randomly assigned Loved flags, the default settings recover about two-thirds of the true top 10 after 30 votes for lists of 15&ndash;20 names, rising to roughly 75&ndash;80% by 45&ndash;60 votes. Real Loved flags should correlate with preference, so real use is probably a little better. Everything is in `CONFIG`, so it is easy to tune once there is real usage.
 
