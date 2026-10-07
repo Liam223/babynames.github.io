@@ -822,6 +822,25 @@ const COUNTRY_COLOUR = ['red', 'blue', 'yellow', 'green'];       // E&W, Scotlan
 
 const average = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
 
+// Centred moving average (the window shrinks at the ends), to show the shape through year-to-year noise.
+function rolling(vals, w = 5) {
+  const half = Math.floor(w / 2);
+  return vals.map((_, i) => average(vals.slice(Math.max(0, i - half), Math.min(vals.length, i + half + 1))));
+}
+
+// Catmull-Rom spline through the points, as an SVG path.
+function smoothPath(p) {
+  if (p.length < 2) return '';
+  let d = `M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 function sparkPoints(vals, w = 64, h = 18) {
   const max = Math.max(...vals);
   if (!max) return '';
@@ -848,47 +867,40 @@ function storyOf(vals, years) {
     else if (ratio <= 0.8) trend = { label: 'Falling', arrow: '↘', cls: 'falling', caption: recent ? `${Math.abs(change)}% fewer than a decade ago` : 'now under 3 a year' };
     else trend = { label: 'Steady', arrow: '→', cls: 'steady', caption: 'about the same as a decade ago' };
   }
-  const decs = decadesOf(years, vals);                          // the sentence names the peak DECADE, matching the chart
-  const dec = peak ? decs.reduce((m, d) => (d.avg > m.avg ? d : m), decs[0]).decade : 0;
+  const dec = Math.floor(peakYear / 10) * 10;
   let sentence = '';
   if (peak) {
     if (last === peak) sentence = 'Most popular right now.';
     else if (pct >= 70) sentence = `Still close to its peak in ${peakYear}.`;
-    else if (!last) sentence = dec < 2010 ? `A ${dec}s favourite that has become rare: now under 3 a year.` : `Peaked in the ${dec}s, now rare: under 3 a year.`;
-    else sentence = `${dec < 2010 ? `A ${dec}s favourite` : `Peaked in the ${dec}s`}, now about ${pct}% as common.`;
+    else if (!last) sentence = peakYear < 2010 ? `A ${dec}s favourite that has become rare: now under 3 a year.` : `Peaked in ${peakYear}, now rare: under 3 a year.`;
+    else sentence = `${peakYear < 2010 ? `A ${dec}s favourite` : `Peaked in ${peakYear}`}, now about ${pct}% as common.`;
   }
   return { peak, peakYear, last, pct, trend, sentence };
 }
 
-// Births grouped into decades. Each bar is the AVERAGE births per year in the decade, so a partly covered decade
-// (the 2020s so far, or a country's records starting mid-decade) isn't unfairly short.
-function decadesOf(years, vals) {
-  const map = new Map();
-  years.forEach((y, i) => {
-    const d = Math.floor(y / 10) * 10;
-    const e = map.get(d) || { decade: d, total: 0, yrs: 0 };
-    e.total += vals[i];
-    e.yrs += 1;
-    map.set(d, e);
-  });
-  return [...map.values()].map((e) => ({ ...e, avg: e.total / e.yrs }));
-}
-
-const fmtAvg = (a) => (!a ? '–' : a >= 10 ? fmt(Math.round(a)) : (Math.round(a * 10) / 10).toString());
-
-function decadeChart(years, vals) {
-  const decades = decadesOf(years, vals);
-  const max = Math.max(...decades.map((d) => d.avg));
-  const peak = decades.find((d) => d.avg === max);
-  const bars = decades.map((d) => {
-    const note = d.decade === peak.decade ? (d.yrs < 10 ? `peak · ${d.yrs} yrs` : 'peak') : d.yrs < 10 ? `${d.yrs} yrs` : '';
-    const label = `${d.decade}s: ${d.avg ? `average ${fmtAvg(d.avg)} ${d.avg === 1 ? 'baby' : 'babies'} a year, ${fmt(d.total)} in total` : 'under 3 a year'}`;
-    return `<button type="button" class="dbar${d.decade === peak.decade ? ' pk' : ''}" data-d="${d.decade}" aria-label="${esc(label)}">
-      <span class="dplot"><span class="dv">${fmtAvg(d.avg)}</span><i style="--h:${d.avg ? Math.max(3, Math.round((100 * d.avg) / max)) : 0}%"></i></span>
-      <span class="dl">${String(d.decade).slice(2)}s</span><small>${note}</small></button>`;
-  }).join('');
-  return `<div class="dchart" role="group" aria-label="Average births per year, by decade">${bars}</div>
-    <p class="hread" aria-live="polite">Peak decade: the ${peak.decade}s, about ${fmtAvg(peak.avg)} a year. Tap a bar for details.</p>`;
+function chartBlock(years, vals, story, END) {
+  const n = years.length;
+  const { peak, peakYear } = story;
+  const dense = vals.filter((v) => v > 0).length >= 8;          // sparse names: bars only (a smoothed line would imply a trend)
+  const H = 100, U = 6;
+  const hOf = (v) => (v ? Math.max(2, (v / peak) * (H - 6)) : 0);
+  const bars = vals.map((v, i) => `<rect x="${i * U + 0.5}" y="${H - hOf(v)}" width="${U - 1}" height="${hOf(v)}" rx="1"></rect>`).join('');
+  const line = dense
+    ? `<path class="avg" d="${smoothPath(rolling(vals).map((v, i) => [i * U + U / 2, H - (v / peak) * (H - 6)]))}" vector-effect="non-scaling-stroke"></path>`
+    : '';
+  const xPct = (i) => (((i + 0.5) / n) * 100).toFixed(2);
+  const yPct = (v) => ((hOf(v) / H) * 100).toFixed(2);
+  const pi = vals.indexOf(peak);
+  const markers = `<i class="mk pk" style="left:${xPct(pi)}%;bottom:${yPct(peak)}%"></i>`
+    + (pi !== n - 1 ? `<i class="mk now" style="left:${xPct(n - 1)}%;bottom:${yPct(vals[n - 1])}%"></i>` : '');
+  let ticks = '';
+  for (let i = 0; i < n; i++) {                                 // decade ticks, skipping any too close to the end labels
+    const pct = ((i + 0.5) / n) * 100;
+    if (years[i] % 10 === 0 && pct >= 14 && pct <= 86) ticks += `<span style="left:${pct.toFixed(2)}%">${years[i]}</span>`;
+  }
+  return `<div class="hread" aria-hidden="true">Peak ${peakYear} · ${fmt(peak)}</div>
+    <div class="hchart"><svg viewBox="0 0 ${n * U} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}${line}</svg>${markers}<i class="hguide" hidden></i></div>
+    <div class="haxis2"><span class="e0">${years[0]}</span>${ticks}<span class="e1">${END}</span></div>`;
 }
 
 function historyPanel(n, h) {
@@ -946,13 +958,13 @@ function historyPanel(n, h) {
   const rare = n.classic ? `<p class="muted small">Rare today: ${n.count ? `${fmt(n.count)} ${n.count === 1 ? 'baby' : 'babies'} in ${meta.years[0]}–${String(END).slice(2)}` : `under 3 a year in ${meta.years[0]}–${String(END).slice(2)}`}.</p>` : '';
   const body = story.peak
     ? `${story.sentence ? `<p class="story">${esc(story.sentence)}</p>` : ''}${tiles}
-       <p class="scope" style="--cc:var(--${colour})"><i class="dot"></i>${esc(where)}</p>${decadeChart(years, vals)}`
+       <p class="scope" style="--cc:var(--${colour})"><i class="dot"></i>${esc(where)}</p>${chartBlock(years, vals, story, END)}`
     : `<p class="muted">No years with 3 or more births in ${esc(where)}.</p>`;
   return {
     html: `<div class="panel" style="--cc:var(--${colour});--ccd:var(--${colour === 'yellow' ? 'yellow-d' : colour})">${ptitle('trend', 'orange', 'Over the years')}${body}
       <p class="panel-title sub">Where it was popular</p><div class="crows">${rowsHtml}</div>${rare}
       <details class="note"><summary>How to read this</summary>
-        <p>Each bar is the average number of babies born per year in that decade, so decades with fewer years of records (the 2020s so far, or where a country’s records start mid-decade) aren’t unfairly short. Names given to fewer than 3 babies in a year aren’t published, so the averages and totals are minimums. “All four combined” starts in 1997, the first year every country’s records overlap; each country’s own chart goes back as far as its records do (Republic of Ireland 1964, Scotland 1974, England &amp; Wales 1996, Northern Ireland 1997). The Peak tile above shows the single best year.</p></details></div>`,
+        <p>Bars are births per year; the line is a 5-year rolling average. Names given to fewer than 3 babies in a year aren’t published, so those years show as gaps and the totals are minimums. “All four combined” starts in 1997, the first year every country’s records overlap; each country’s own chart goes back as far as its records do (Republic of Ireland 1964, Scotland 1974, England &amp; Wales 1996, Northern Ireland 1997). Drag along the chart to read a year.</p></details></div>`,
     years, vals,
   };
 }
@@ -974,20 +986,21 @@ function renderInfoHistory(n) {
       }
       target.innerHTML = p.html;
       $$('.crow', target).forEach((b) => b.addEventListener('click', () => { infoHistC = b.dataset.c; draw(); }));
-      const read = $('.hread', target);
-      if (read) {
-        const decades = decadesOf(p.years, p.vals);
-        const def = read.textContent;
-        $$('.dbar', target).forEach((b) => b.addEventListener('click', () => {
-          const d = decades.find((x) => x.decade === +b.dataset.d);
-          const on = b.classList.contains('on');
-          $$('.dbar', target).forEach((x) => x.classList.remove('on'));
-          if (on) { read.textContent = def; return; }
-          b.classList.add('on');
-          read.textContent = d.avg
-            ? `${d.decade}s: about ${fmtAvg(d.avg)} a year, ${fmt(d.total)} in total over ${d.yrs} year${d.yrs === 1 ? '' : 's'} of records.`
-            : `${d.decade}s: under 3 a year (not published).`;
-        }));
+      const chart = $('.hchart', target);
+      if (chart) {                                                  // drag (or hover) along the chart to read a year
+        const read = $('.hread', target), guide = $('.hguide', target), def = read.textContent, len = p.years.length;
+        const move = (e) => {
+          const r = chart.getBoundingClientRect();
+          const i = Math.max(0, Math.min(len - 1, Math.floor(((e.clientX - r.left) / r.width) * len)));
+          const v = p.vals[i];
+          read.textContent = `${p.years[i]} · ${v ? `${fmt(v)} ${v === 1 ? 'baby' : 'babies'}` : 'under 3'}`;
+          guide.style.left = `${(((i + 0.5) / len) * 100).toFixed(2)}%`;
+          guide.hidden = false;
+        };
+        const reset = () => { read.textContent = def; guide.hidden = true; };
+        chart.addEventListener('pointerdown', move);
+        chart.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || e.buttons) move(e); });
+        for (const ev of ['pointerleave', 'pointerup', 'pointercancel']) chart.addEventListener(ev, reset);
       }
     };
     draw();
