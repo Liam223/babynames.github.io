@@ -499,3 +499,5 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 details.note { margin-top: 12px; }
 details.note summary { min-height: 40px; display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: .85rem; color: var(--blue); cursor: pointer; }
 details.note p { margin: 4px 0 0; font-size: .8rem; color: var(--muted); }
+
+.p-ic.pink { background: var(--pink); color: var(--on-pink); }

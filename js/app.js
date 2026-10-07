@@ -736,12 +736,13 @@ function renderInfo() {
     // classics: the "Over the years" panel below carries the history
   } else {
     const oneIn = n.count && sexTotal ? Math.round(sexTotal / n.count) : 0;
-    out.push(`<div class="panel">${ptitle('chart', 'violet', 'Popularity')}
+    out.push(`<div class="panel">${ptitle('award', 'yellow', 'Popularity')}
       <div class="istats">
         <div><b>#${fmt(n.rank)}</b><span>${esc(noun)} names, UK &amp; Ireland</span></div>
         <div><b>${fmt(n.count)}</b><span>${babiesWord(n.count)}, ${esc(span)}</span></div>
         <div><b>${oneIn ? `1 in ${fmt(oneIn)}` : '–'}</b><span>of all ${esc(noun)} births</span></div>
-      </div></div>`);
+      </div>
+      <p class="muted small">Rank and babies are for ${esc(span)} (five years combined), all four countries together.</p></div>`);
 
     // per-year chart
     if (n.years.length === yrs.length && yrs.length) {
@@ -754,7 +755,7 @@ function renderInfo() {
         const ratio = early ? late / early : 0;
         note = `<p class="trend ${tr.label.toLowerCase()}"><span aria-hidden="true">${tr.arrow}</span> ${tr.label}${ratio && tr.label !== 'Steady' ? ` · ${ratio >= 1 ? '×' : '×'}${ratio.toFixed(1)} the share of births since ${yrs[0]}–${String(yrs[1]).slice(2)}` : ''}</p>`;
       }
-      out.push(`<div class="panel">${ptitle('chart', 'violet', 'Babies per year')}${barChart(n.years, yrs.map((y) => `’${String(y).slice(2)}`))}${note}</div>`);
+      out.push(`<div class="panel">${ptitle('calendar', 'violet', 'Babies per year')}${barChart(n.years, yrs.map((y) => `’${String(y).slice(2)}`))}${note}<p class="muted small">Babies born in each year, ${esc(span)}.</p></div>`);
     }
 
     // per-country
@@ -1043,7 +1044,7 @@ function aboutPanel(n, it) {
   const credit = links.length
     ? `<p class="muted small">Read more: ${links.join(' · ')}. Text from Wiktionary and Wikipedia, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</p>`
     : '';
-  return `<div class="panel">${ptitle('info', 'yellow', 'About this name')}${rows.join('')}${credit}</div>`;
+  return `<div class="panel">${ptitle('info', 'pink', 'About this name')}${rows.join('')}${credit}</div>`;
 }
 
 function renderInfoExtra(n) {
@@ -1054,7 +1055,7 @@ function renderInfoExtra(n) {
     const it = infoData && infoData.items[n.key];
     $('#info-extra').innerHTML = it && Object.keys(it).length
       ? aboutPanel(n, it)
-      : `<div class="panel">${ptitle('info', 'yellow', 'About this name')}<p class="muted">No origin, meaning or pronunciation found for this name yet. Names outside the most popular ones and the Irish-language names are only partly covered.</p></div>`;
+      : `<div class="panel">${ptitle('info', 'pink', 'About this name')}<p class="muted">No origin, meaning or pronunciation found for this name yet. Names outside the most popular ones and the Irish-language names are only partly covered.</p></div>`;
   };
   if (infoData) { fill(); return; }
   slot.innerHTML = '<div class="panel"><p class="muted">Loading more about this name…</p></div>';
