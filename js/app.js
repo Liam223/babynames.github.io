@@ -667,6 +667,7 @@ function openInfo(n) {
   if (!n) return;
   infoName = n;
   infoSex = n.sex;
+  infoHistC = 'auto';
   if (screen !== 'info') infoFrom = screen;
   show('info');
 }
@@ -772,6 +773,8 @@ function renderInfo() {
     }
   }
 
+  out.push('<div id="info-history"></div>');
+
   // spellings
   if (n.variants.length) {
     out.push(`<div class="panel"><p class="panel-title">Other spellings</p>
@@ -789,8 +792,96 @@ function renderInfo() {
   out.push('<div id="info-extra"></div>');
   out.push('<p class="muted small center">Counts: ONS, National Records of Scotland, NISRA and CSO. Contains public sector information licensed under the Open Government Licence v3.0.</p>');
   $('#info-body').innerHTML = out.join('');
-  $$('input[name=infosex]').forEach((i) => i.addEventListener('change', () => { infoSex = i.value; renderInfo(); }));
+  $$('input[name=infosex]').forEach((i) => i.addEventListener('change', () => { infoSex = i.value; infoHistC = 'auto'; renderInfo(); }));
   renderInfoExtra(n);
+  renderInfoHistory(n);
+}
+
+// Births per year over each source's whole history, from data/history/<sex>-<letter>.json (built by scripts/build-history.py).
+// One small file per letter, fetched when a details screen opens, so it never slows down the swipe deck.
+const COVER_START = [1996, 1974, 1997, 1964];          // first year each country's records cover (same order as data.countries)
+const COUNTRY_LABEL = ['England & Wales', 'Scotland', 'Northern Ireland', 'Republic of Ireland'];
+const COUNTRY_PILL = ['E&W', 'Scotland', 'N. Ireland', 'Ireland'];
+const histCache = new Map();
+let infoHistC = 'auto';                                 // 'auto' (pick a sensible default), 'all', or a country index
+
+function loadHistory(sex, key) {
+  const shard = /^[a-z]/.test(key) ? key[0] : '_';
+  const id = `${sex}-${shard}`;
+  if (!histCache.has(id)) {
+    histCache.set(id, fetch(`./data/history/${id}.json`)
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .catch(() => { histCache.delete(id); return null; }));
+  }
+  return histCache.get(id).then((d) => (d && d.names[key]) || null);
+}
+
+const expandSeries = (h, i) => {
+  const m = new Map();
+  if (h[i]) h[i][1].forEach((c, j) => { if (c) m.set(h[i][0] + j, c); });
+  return m;
+};
+
+function historyPanel(n, h) {
+  const meta = data[n.sex];
+  const END = meta.years[meta.years.length - 1];
+  const have = [0, 1, 2, 3].filter((i) => h[i]);
+  if (!have.length) return '';
+  const maps = [0, 1, 2, 3].map((i) => expandSeries(h, i));
+  // Default: all four combined for modern names; for classics, the country where the name had the most births
+  // (the combined view only starts in 1997, so it would miss an older peak).
+  const totals = maps.map((m) => { let t = 0; for (const c of m.values()) t += c; return t; });
+  let sel = infoHistC;
+  if (sel === 'auto') sel = n.classic ? String(totals.indexOf(Math.max(...totals))) : 'all';
+  const mode = sel !== 'all' && h[+sel] ? +sel : 'all';
+  const from = mode === 'all' ? 1997 : COVER_START[mode];     // 1997 is the first year all four countries' records overlap
+  const years = [], vals = [];
+  for (let y = from; y <= END; y++) {
+    years.push(y);
+    vals.push(mode === 'all' ? have.reduce((t, i) => t + (maps[i].get(y) || 0), 0) : maps[mode].get(y) || 0);
+  }
+  const peak = Math.max(...vals);
+  const peakYear = peak ? years[vals.indexOf(peak)] : 0;
+  const last = vals[vals.length - 1];
+  const where = mode === 'all' ? 'All four countries combined' : COUNTRY_LABEL[mode];
+
+  const pills = [['all', 'All'], ...have.map((i) => [String(i), COUNTRY_PILL[i]])];
+  const seg = `<div class="seg wrap hist-seg" role="radiogroup" aria-label="Show history for">${pills.map(([v, l]) =>
+    `<label><input type="radio" name="histc" value="${v}"${String(mode) === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('')}</div>`;
+
+  let chart;
+  if (!peak) {
+    chart = `<p class="muted">No years with 3 or more births in ${esc(where)}.</p>`;
+  } else {
+    const bars = vals.map((v, i) => `<i${years[i] === peakYear ? ' class="pk"' : ''} style="height:${v ? Math.max(3, Math.round((100 * v) / peak)) : 0}%" title="${years[i]}: ${v ? fmt(v) : 'fewer than 3'}"></i>`).join('');
+    chart = `<div class="hbars" role="img" aria-label="${esc(where)}, births per year ${years[0]} to ${END}. Peak ${fmt(peak)} in ${peakYear}.">${bars}</div>
+      <div class="haxis"><span>${years[0]}</span><span>peak ${peakYear}</span><span>${END}</span></div>
+      <p class="small"><b>${esc(where)}:</b> peaked in ${peakYear} with ${fmt(peak)} ${peak === 1 ? 'baby' : 'babies'}${peakYear === years[0] ? ' (the first year on record, so it may have been higher earlier)' : ''}. ${last ? `${fmt(last)} in ${END} (${Math.round((100 * last) / peak)}% of the peak).` : `Fewer than 3 in ${END}.`}</p>`;
+  }
+
+  const rows = have.map((i) => {
+    let total = 0, pk = 0, py = 0;
+    for (const [y, c] of maps[i]) { total += c; if (c > pk) { pk = c; py = y; } }
+    return `<tr><th scope="row">${esc(COUNTRY_LABEL[i])}</th><td>${fmt(total)}</td><td>${py ? `${py} · ${fmt(pk)}` : '–'}</td><td>${COVER_START[i]}</td></tr>`;
+  }).join('');
+  return `<div class="panel"><p class="panel-title">Over the years</p>${seg}${chart}
+    <p class="panel-title sub">Whole history by country</p>
+    <table class="itable"><thead><tr><th></th><th scope="col">Births</th><th scope="col">Peak</th><th scope="col">From</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="muted small">Names given to fewer than 3 babies in a year aren’t published, so those years show as gaps and the totals are a minimum. “All” covers 1997 onwards, when all four countries’ records overlap; each country’s own history goes back further where its records do.</p></div>`;
+}
+
+function renderInfoHistory(n) {
+  const slot = $('#info-history');
+  if (!slot) return;
+  slot.innerHTML = '<div class="panel"><p class="muted">Loading history…</p></div>';
+  loadHistory(n.sex, n.key).then((h) => {
+    const draw = () => {
+      if (screen !== 'info' || infoEntry() !== n || !$('#info-history')) return;      // user moved on
+      $('#info-history').innerHTML = h ? historyPanel(n, h) : '';
+      $$('input[name=histc]').forEach((i) => i.addEventListener('change', () => { infoHistC = i.value; draw(); }));
+    };
+    draw();
+  });
 }
 
 // Origin, meaning and pronunciation come from data/info.json (built from Wiktionary and Wikipedia).

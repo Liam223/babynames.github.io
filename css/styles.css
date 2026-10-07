@@ -452,3 +452,14 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 .ipa { display: inline-block; margin: 0 12px 2px 0; font-family: "Segoe UI", system-ui, "Noto Sans", sans-serif; }
 .ipa small { color: var(--muted); font-size: .75rem; }
 .panel a { color: var(--blue); font-weight: 700; }
+
+/* long-term history */
+.hist-seg { margin: 8px 0 10px; }
+.hist-seg span { min-height: 38px; font-size: .85rem; }
+.hbars { display: flex; align-items: flex-end; gap: 1px; height: 120px; margin-top: 4px; }
+.hbars i { flex: 1; min-width: 1px; border-radius: 2px 2px 0 0; background: var(--blue); }
+.hbars i.pk { background: var(--orange); }
+.haxis { display: flex; justify-content: space-between; margin: 4px 0 8px; font-size: .75rem; font-weight: 700; color: var(--muted); }
+.panel-title.sub { margin-top: 16px; font-size: .95rem; }
+
+.itable td { white-space: nowrap; }

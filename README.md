@@ -58,7 +58,7 @@ flowchart LR
 - **Names with context.** Each card shows the overall rank, babies given the name in 2021&ndash;25, a rising/falling trend with a sparkline, the rank in England &amp; Wales, Scotland, Northern Ireland and the Republic of Ireland, and a flag when one country stands out.
 - **Strong Irish coverage.** Names are combined from four official sources, with a curated list plus a pattern check to tag Irish names (&#9752;&#65039;). Oisín and Oisin are one card; Aoife and Eva stay separate.
 - **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band (including **Retro**: older names that were popular in the past but are rare today), and starting letter.
-- **Name details.** Tap a card (or use the ⓘ button on any list row) for a details screen: popularity, a per-year chart, ranks by country, the boys/girls split for unisex names, spellings, and, where available, **origin, meaning, IPA and an English-friendly pronunciation**.
+- **Name details.** Tap a card (or use the ⓘ button on any list row) for a details screen: popularity, a per-year chart, the **whole history** back to 1964 / 1974 / 1996 by country, ranks by country, the boys/girls split for unisex names, spellings, and, where available, **origin, meaning, IPA and an English-friendly pronunciation**.
 - **Honest ranking.** Boys and girls are compared in separate pools, so a boy is never pitted against a girl. A unisex name has its own rating in each pool.
 - **Private by design.** Choices live in `localStorage`; export and import a backup to move to a new phone.
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
@@ -107,12 +107,14 @@ js/
 data/boys.json          Generated name data (do not edit by hand)
 data/girls.json
 data/info.json          Generated origin / meaning / pronunciation, loaded only when a details screen opens
+data/history/           Generated births per year over each source's whole history, one small file per sex and letter
 fonts/                  Fraunces 700 (latin + latin-ext subsets), self-hosted
 icons/logo.svg          The BABY block logo (also the favicon)
 scripts/
   fetch-data.py         Downloads the raw source files into data-src/
   build-names.py        Builds data/boys.json and girls.json from data-src/
   build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
+  build-history.py      Builds data/history/*.json from the raw files in data-src/ (offline)
   serve.py              Local static server
 data-src/
   irish-names.txt       Curated Irish-origin names (committed)
@@ -232,6 +234,18 @@ The modern names are byte-for-byte identical to the previous build (same entries
   ]
 }
 ```
+
+---
+
+## Whole history
+
+Cards and the main data files only carry 2021&ndash;25. The details screen's **Over the years** panel shows every year each source has, from `data/history/<sex>-<letter>.json`, built offline from the same raw files (no API calls):
+
+```bash
+python scripts/build-history.py     # 52 files, ~2 MB total, largest ~160 KB (~47 KB gzipped)
+```
+
+Each name has an entry per country: `0` or `[firstYear, [count, count, ...]]`, a dense run of yearly counts. The app fetches one small file when a details screen opens, never at start-up. Coverage per country: Republic of Ireland from 1964, Scotland from 1974, England &amp; Wales from 1996, Northern Ireland from 1997, so the **All** view starts in 1997 (the first year all four overlap) and each country's own chart goes back further. Years with fewer than 3 births are not published, so they show as gaps and totals are minimums. If a peak falls on a country's first year of records, the app says the real peak may have been earlier.
 
 ---
 
