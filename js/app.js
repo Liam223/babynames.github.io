@@ -141,7 +141,8 @@ function renderWelcome() {
   const c = counts(SEXES);
   const any = c.no + c.like + c.love > 0;
   $('#continue').hidden = !any;
-  if (any) $('#continue-summary').textContent = summary(c);
+  $('#adjust').hidden = !any;
+  if (any) { $('#rs-seen').textContent = fmt(c.no + c.like + c.love); $('#rs-like').textContent = fmt(c.like); $('#rs-love').textContent = fmt(c.love); }
   updateRemaining();
 }
 

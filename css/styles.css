@@ -140,6 +140,16 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .chip:nth-child(5n) { --c: var(--orange); --cd: var(--orange-d); --on: var(--on-orange); }
 .chip[aria-pressed="true"] { background: var(--c); color: var(--on); box-shadow: 0 1px 0 var(--cd); transform: translateY(2px); }
 
+/* welcome back */
+.resume { background: var(--blue); color: var(--on-blue); border-radius: 18px; padding: 16px; margin: 0 0 18px; box-shadow: 0 4px 0 var(--blue-d); }
+.resume-title { font: 700 1.4rem var(--font-display); margin: 0 0 12px; }
+.resume-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.resume-stats div { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 12px; background: color-mix(in srgb, var(--on-blue) 16%, transparent); }
+.resume-stats b { font: 700 1.5rem/1.1 var(--font-display); }
+.resume-stats span { font-size: .8rem; font-weight: 700; opacity: .9; }
+.btn.resume-btn { width: 100%; min-height: 54px; font-size: 1.1rem; background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); box-shadow: 0 3px 0 var(--yellow-d); }
+.adjust { margin: 0 0 8px; font-weight: 700; }
+
 /* panels */
 .panel { background: var(--surface); border: 2px solid var(--line); border-radius: 16px; padding: 16px; margin: 0 0 16px; box-shadow: 0 3px 0 var(--line); }
 .panel-title { display: flex; align-items: center; font-weight: 800; margin: 0 0 4px; }

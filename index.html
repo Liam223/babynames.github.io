@@ -33,11 +33,16 @@
     <h1 id="welcome-title">Find the name.</h1>
     <p class="lead">Swipe through thousands of UK and Irish baby names, then rank your favourites head to head.</p>
 
-    <div id="continue" class="panel" hidden>
-      <p class="panel-title">Welcome back</p>
-      <p id="continue-summary" class="muted"></p>
-      <button id="btn-continue" class="btn primary">Continue</button>
+    <div id="continue" class="resume" hidden>
+      <p class="resume-title">Welcome back</p>
+      <div class="resume-stats">
+        <div><b id="rs-seen">0</b><span>seen</span></div>
+        <div><b id="rs-like">0</b><span>liked</span></div>
+        <div><b id="rs-love">0</b><span>loved</span></div>
+      </div>
+      <button id="btn-continue" class="btn resume-btn">Continue swiping <span data-icon="arrow" data-size="20"></span></button>
     </div>
+    <p id="adjust" class="adjust muted" hidden>Or change what you're looking for:</p>
 
     <fieldset class="group">
       <legend>I'm looking for</legend>
