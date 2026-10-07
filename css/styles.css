@@ -442,3 +442,13 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 .split { display: flex; height: 16px; border-radius: 8px; overflow: hidden; margin: 8px 0 6px; background: var(--wood); }
 .split .b { background: var(--blue); } .split .g { background: var(--pink); }
 .info-sex { margin: 0 0 14px; }
+
+/* about this name */
+.say { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin: 8px 0 4px; }
+.say b { font: 700 1.6rem/1.1 var(--font-display); }
+.irow { margin: 10px 0 0; line-height: 1.45; }
+.irow-label { display: block; margin-bottom: 2px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.say .irow-label { display: inline; margin: 0; }
+.ipa { display: inline-block; margin: 0 12px 2px 0; font-family: "Segoe UI", system-ui, "Noto Sans", sans-serif; }
+.ipa small { color: var(--muted); font-size: .75rem; }
+.panel a { color: var(--blue); font-weight: 700; }

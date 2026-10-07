@@ -793,8 +793,62 @@ function renderInfo() {
   renderInfoExtra(n);
 }
 
-// Placeholder for origin, meaning and pronunciation (added by the enrichment data).
-function renderInfoExtra() {}
+// Origin, meaning and pronunciation come from data/info.json (built from Wiktionary and Wikipedia).
+// It is loaded only when you first open a details screen, so the swipe deck stays fast.
+let infoData = null;
+let infoLoading = null;
+
+function loadInfoData() {
+  if (!infoLoading) {
+    infoLoading = fetch('./data/info.json')
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then((d) => { infoData = d; return d; })
+      .catch(() => { infoLoading = null; return null; });       // try again next time (offline, etc.)
+  }
+  return infoLoading;
+}
+
+function aboutPanel(n, it) {
+  const rows = [];
+  const say = it.r && it.r.length ? { text: it.r.join(' or '), note: 'From Wikipedia' } : it.s ? { text: it.s, note: 'Approximate · unverified' } : null;
+  if (say) {
+    rows.push(`<div class="say"><span class="irow-label">Say it</span><b>${esc(say.text)}</b><span class="ichip">${esc(say.note)}</span></div>`);
+  }
+  if (it.i && it.i.length) {
+    rows.push(`<p class="irow"><span class="irow-label">IPA</span>${it.i.map(([ipa, label]) => `<span class="ipa">${esc(ipa)} <small>${esc(label)}</small></span>`).join('')}</p>`);
+  }
+  if (say && (n.irish || (n.alt && n.alt.irish))) {
+    rows.push('<p class="muted small">Irish names are pronounced differently in different regions, so treat this as a guide.</p>');
+  }
+  if (it.o) rows.push(`<p class="irow"><span class="irow-label">Origin</span>${esc(it.o)}</p>`);
+  if (it.e) rows.push(`<p class="irow"><span class="irow-label">Etymology</span>${esc(it.e)}</p>`);
+  if (it.a) rows.push(`<p class="irow about"><span class="irow-label">About</span>${esc(it.a)}</p>`);
+  const links = [];
+  if (it.t) links.push(`<a href="https://en.wiktionary.org/wiki/${encodeURIComponent(it.t)}" target="_blank" rel="noopener">Wiktionary</a>`);
+  if (it.w) links.push(`<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(it.w.replace(/ /g, '_'))}" target="_blank" rel="noopener">Wikipedia</a>`);
+  const credit = links.length
+    ? `<p class="muted small">Read more: ${links.join(' · ')}. Text from Wiktionary and Wikipedia, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</p>`
+    : '';
+  return `<div class="panel"><p class="panel-title">About this name</p>${rows.join('')}${credit}</div>`;
+}
+
+function renderInfoExtra(n) {
+  const slot = $('#info-extra');
+  if (!slot) return;
+  const fill = () => {
+    if (screen !== 'info' || infoEntry() !== n || !$('#info-extra')) return;      // user moved on
+    const it = infoData && infoData.items[n.key];
+    $('#info-extra').innerHTML = it && Object.keys(it).length
+      ? aboutPanel(n, it)
+      : '<div class="panel"><p class="panel-title">About this name</p><p class="muted">No origin, meaning or pronunciation found for this name yet. Names outside the most popular ones and the Irish-language names are only partly covered.</p></div>';
+  };
+  if (infoData) { fill(); return; }
+  slot.innerHTML = '<div class="panel"><p class="muted">Loading more about this name…</p></div>';
+  loadInfoData().then((d) => {
+    if (d) fill();
+    else if (screen === 'info' && $('#info-extra')) $('#info-extra').innerHTML = '<div class="panel"><p class="muted">Couldn’t load the extra details. Check your connection and try again.</p></div>';
+  });
+}
 
 /* ---------- settings ---------- */
 let persistAsked = false;

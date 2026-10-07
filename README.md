@@ -58,6 +58,7 @@ flowchart LR
 - **Names with context.** Each card shows the overall rank, babies given the name in 2021&ndash;25, a rising/falling trend with a sparkline, the rank in England &amp; Wales, Scotland, Northern Ireland and the Republic of Ireland, and a flag when one country stands out.
 - **Strong Irish coverage.** Names are combined from four official sources, with a curated list plus a pattern check to tag Irish names (&#9752;&#65039;). Oisín and Oisin are one card; Aoife and Eva stay separate.
 - **Filters.** Boys, girls or both (a name used for both appears once as *Unisex*), Irish only, popularity band (including **Retro**: older names that were popular in the past but are rare today), and starting letter.
+- **Name details.** Tap a card (or use the ⓘ button on any list row) for a details screen: popularity, a per-year chart, ranks by country, the boys/girls split for unisex names, spellings, and, where available, **origin, meaning, IPA and an English-friendly pronunciation**.
 - **Honest ranking.** Boys and girls are compared in separate pools, so a boy is never pitted against a girl. A unisex name has its own rating in each pool.
 - **Private by design.** Choices live in `localStorage`; export and import a backup to move to a new phone.
 - **Accessible.** Buttons for every gesture, ARIA labels, a live region announcing decisions, `prefers-reduced-motion` and dark mode.
@@ -105,15 +106,18 @@ js/
   icons.js              Inline SVG icon set
 data/boys.json          Generated name data (do not edit by hand)
 data/girls.json
+data/info.json          Generated origin / meaning / pronunciation, loaded only when a details screen opens
 fonts/                  Fraunces 700 (latin + latin-ext subsets), self-hosted
 icons/logo.svg          The BABY block logo (also the favicon)
 scripts/
   fetch-data.py         Downloads the raw source files into data-src/
-  build-names.py        Builds data/*.json from data-src/
+  build-names.py        Builds data/boys.json and girls.json from data-src/
+  build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
   serve.py              Local static server
 data-src/
   irish-names.txt       Curated Irish-origin names (committed)
   irish-review.txt      Names tagged by pattern only / left untagged as uncertain
+  respellings.txt       Hand-written, approximate, UNVERIFIED pronunciation respellings (fallback only)
 docs/screenshots/       Images used in this README
 BRIEF.md                The original build brief
 ```
@@ -231,6 +235,30 @@ The modern names are byte-for-byte identical to the previous build (same entries
 
 ---
 
+## Name details: origin, meaning and pronunciation
+
+The details screen's *About this name* section comes from `data/info.json`, built by `scripts/build-info.py`:
+
+```bash
+python scripts/build-info.py                 # whole set (Irish-tagged names + the top 1,000 per sex), a few minutes
+python scripts/build-info.py --names "Oscar,Saoirse,Niamh" --out /tmp/test.json   # try a few names
+```
+
+| Field | Where it comes from |
+|---|---|
+| Origin language | Wiktionary's given-name template (`from=`) |
+| Etymology / meaning | Wiktionary's etymology, cleaned from wiki markup to plain text |
+| IPA | Wiktionary (`{{IPA}}` templates; Irish IPA first for Irish-language spellings, English first otherwise) |
+| "Say it" respelling | **Wikipedia's** opening brackets where they give one (e.g. *EE-fuh*), otherwise `data-src/respellings.txt` |
+| About text and links | The opening of the Wikipedia "(given name)" article |
+
+- **The respellings in `data-src/respellings.txt` are hand-written and unverified.** They are marked *Approximate · unverified* in the app, are only used when Wikipedia has none, and Irish pronunciation varies by region. They would benefit from review by an Irish speaker.
+- Coverage is good for Irish names and popular names, and thin for rare spellings; the screen says so when there is nothing to show. The current file covers about 1,840 names (516 KB, ~150 KB gzipped).
+- **Runtime is fully local:** the app fetches `data/info.json` from its own site the first time a details screen opens. It never calls Wikipedia or Wiktionary while you use it, and no name you look at leaves your device.
+- All Wiktionary and Wikipedia text is **CC BY-SA 4.0**. The app credits both on every entry and links to the source pages, and any data derived from that text stays under the same licence.
+
+---
+
 ## Storage and privacy
 
 All state is one JSON string in `localStorage` under the key **`bn:v1:state`**. Every read and write is wrapped in `try/catch`, and the app falls back to memory (with a warning in Settings) if storage is blocked.
@@ -280,7 +308,7 @@ Fonts: system UI for controls and [Fraunces](https://github.com/undercasetype/Fr
 
 ## Status and roadmap
 
-**Done:** swipe round with persistence, boys/girls/unisex handling, rich name stats, per-sex comparison and Elo ranking, My list (search, filters, restore), backup and restore, dark mode, responsive navigation.
+**Done:** name details screen (stats, origin, meaning, pronunciation), swipe round with persistence, boys/girls/unisex handling, rich name stats, per-sex comparison and Elo ranking, My list (search, filters, restore), backup and restore, dark mode, responsive navigation.
 
 **Planned**
 - [ ] **Partner sharing.** A `#share=` link carrying liked and loved names (indexes plus the data version, compressed), showing matches between two people with no server.
@@ -296,5 +324,6 @@ There is no automated test suite yet; checks so far have been manual, plus simul
 ## Licences and credits
 
 - **Name data:** contains public sector information licensed under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) (ONS, National Records of Scotland, NISRA). Irish data from the CSO is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Name details text:** [Wiktionary](https://en.wiktionary.org/) and [Wikipedia](https://en.wikipedia.org/), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - **Font:** Fraunces, [SIL Open Font License 1.1](https://openfontlicense.org/).
 - **Icons:** adapted from [Feather Icons](https://feathericons.com/) (MIT). The logo is original.
