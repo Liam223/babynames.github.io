@@ -86,6 +86,16 @@ python scripts/serve.py        # http://localhost:8080
 
 > **Tip:** browsers cache the stylesheet and modules aggressively. After editing, hard-refresh (Ctrl/Cmd+Shift+R) or use a fresh `?v=` query on the page URL.
 
+### Tests
+
+The tests use Node's built-in runner (Node 22 or newer, no packages to install):
+
+```bash
+npm test
+```
+
+They cover the rating maths, trend and "story" rules, the deck's filters and ordering, saved-state migration and backup sanitising, and the generated data files (shape, unique names, a history entry for every name). The code under test is kept free of page access (`series.js`, `queue.js`, `elo.js`, `names.js`, `storage.js`) so it can run without a browser.
+
 ### Deploying
 
 GitHub Pages serves the `main` branch from the repository root. `.nojekyll` makes Pages serve every file as-is. It is a *project site*, so the app lives under `/babynames.github.io/` and **every asset path must be relative** (`./data/boys.json`, never `/data/boys.json`).
@@ -108,6 +118,8 @@ js/
   history.js            Details "Over the years" panel: per-country history, story and chart
   settings.js           Backup export/import, nickname, resets
 
+  queue.js              Pure: which names pass the filters, and the seeded weighted shuffle
+  series.js             Pure: the maths behind the history chart (rolling average, trend, story)
   swipe.js              Pointer-event gestures (touch + mouse) and the stamp/glow feedback
   elo.js                Rating maths and pair selection; every tunable is in CONFIG
   names.js              Loads the JSON data, grouping key, trend and "standout" stats
@@ -129,6 +141,8 @@ data-src/
   irish-names.txt       Curated Irish-origin names (committed)
   irish-review.txt      Names tagged by pattern only / left untagged as uncertain
   respellings.txt       Hand-written, approximate, UNVERIFIED pronunciation respellings (fallback only)
+test/                   Node tests (`npm test`)
+package.json            Test and serve scripts (no dependencies)
 docs/screenshots/       Images used in this README
 BRIEF.md                The original build brief
 ```
@@ -342,7 +356,7 @@ Fonts: system UI for controls and [Fraunces](https://github.com/undercasetype/Fr
 
 **Out of scope for now:** accounts, a backend, real-time sync, name meanings and pronunciations. See [`BRIEF.md`](BRIEF.md) for the original requirements.
 
-There is no automated test suite yet; checks so far have been manual, plus simulations of the rating logic.
+Automated tests: `npm test` (see [Tests](#tests)). The screens themselves are checked by hand.
 
 ---
 

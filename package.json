@@ -1,0 +1,11 @@
+{
+  "name": "nameblocks",
+  "private": true,
+  "type": "module",
+  "description": "UK and Irish baby names: swipe, compare, rank. Static site, no build step.",
+  "scripts": {
+    "test": "node --test test/",
+    "serve": "python scripts/serve.py"
+  },
+  "engines": { "node": ">=22" }
+}

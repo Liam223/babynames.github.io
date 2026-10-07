@@ -1,6 +1,7 @@
 // The swipe deck: which names are eligible, the shuffled queue, the name card, and swiping.
 import { HISTORY_CAP } from './storage.js';
-import { sexesFor, isPrimary, trend, standout, COUNTRY_SHORT } from './names.js';
+import { trend, standout, COUNTRY_SHORT } from './names.js';
+import { candidatesFor, weightedOrder } from './queue.js';
 import { icon } from './icons.js';
 import { attachSwipe } from './swipe.js';
 import { $, ui, state, data, screens, persist, announce, fmt, esc, babies, irishOf, merged, decisionOf, setDecision, clearDecision, counts, summary, reduced, askPersistence } from './core.js';
@@ -11,49 +12,10 @@ let current = null;       // { name, src }
 let swiper = null;
 
 /* ---------- filtering & ordering ---------- */
-function eligible(n, s) {
-  if (s.irish && !n.irish) return false;
-  if (s.pop === 'top100' && n.rank > 100) return false;
-  if (s.pop === 'top500' && n.rank > 500) return false;
-  if (s.pop === 'gems' && (n.rank <= 500 || n.classic)) return false;   // gems are modern names; classics have their own filter
-  if (s.pop === 'retro' && !n.classic) return false;
-  if (s.letters.length && !s.letters.includes(n.key[0].toUpperCase())) return false;
-  return true;
-}
+export const candidates = (s = state.settings) => candidatesFor(data, s);
 
-// All names matching the filters. When boys and girls are mixed, a name used for both appears once.
-export function candidates(s = state.settings) {
-  const sexes = sexesFor(s.sex);
-  const both = sexes.length === 2;
-  const out = [];
-  for (const sex of sexes) {
-    for (const n of data[sex].list) {
-      if (both && !isPrimary(n)) continue;
-      if (eligible(n, s) || (both && n.alt && eligible(n.alt, s))) out.push(n);
-    }
-  }
-  return out;
-}
-
-function rng(seed) {                       // mulberry32
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Weighted shuffle (Efraimidis-Spirakis): popular names tend to come first, rarer ones are mixed in.
 export function buildQueue() {
-  const r = rng(state.queue.seed);
-  const items = candidates().map((n) => {
-    const w = 1 / Math.pow(n.rank + 25, 0.65);
-    return [Math.log(r() || 1e-9) / w, n];
-  });
-  items.sort((a, b) => b[0] - a[0]);
-  queue = items.map((x) => x[1]);
+  queue = weightedOrder(candidates(), state.queue.seed);
 }
 
 function nextCard() {

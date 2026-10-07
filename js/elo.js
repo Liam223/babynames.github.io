@@ -22,7 +22,7 @@ export const kFor = (comparisons) => (comparisons >= CONFIG.lateAfter ? CONFIG.k
 export function applyResult(win, lose) {
   const expectedWin = expectedScore(win.r, lose.r);
   const gain = kFor(win.n) * (1 - expectedWin);
-  const loss = kFor(lose.n) * expectedWin;
+  const loss = kFor(lose.n) * (1 - expectedWin);
   win.r += gain; lose.r -= loss;
   win.n += 1; lose.n += 1;
 }
