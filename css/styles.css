@@ -239,6 +239,8 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .search { position: relative; margin: 8px 0 12px; }
 .search-ic { position: absolute; left: 14px; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
 .search input { width: 100%; min-height: 48px; padding: 0 14px 0 42px; border-radius: 14px; border: 2px solid var(--edge); background: var(--surface); }
+.list-sex { margin: 0 0 10px; }
+.list-sex span { min-height: 42px; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
 @media (min-width: 460px) { .tabs { grid-template-columns: repeat(4, 1fr); } }
 .tabs button { flex: 1; min-height: 48px; border-radius: 14px; border: 2px solid var(--edge); background: var(--surface); font-weight: 700; padding: 0 4px; font-size: .9rem; white-space: nowrap; box-shadow: 0 2px 0 var(--edge); }

@@ -18,6 +18,7 @@ let listTab = 'love';
 let listSort = 'rank';
 let listLimit = 100;
 let listQuery = '';
+let listSex = 'both';          // My list filter: both | boys | girls
 
 const persist = () => save(state);
 const announce = (msg) => { $('#live').textContent = ''; setTimeout(() => { $('#live').textContent = msg; }, 20); };
@@ -340,8 +341,8 @@ function rowsFor(tab) {
 function listRows(tab) {
   const q = nameKey(listQuery.trim());
   const keep = (n) => !q || nameKey(n.name).includes(q) || n.variants.some((v) => nameKey(v).includes(q));
-  if (tab === 'ranked') return rankedRows().filter((r) => keep(r.n));
-  const rows = rowsFor(tab).filter((r) => keep(r.n));
+  if (tab === 'ranked') return rankedRows(listSex).filter((r) => keep(r.n));
+  const rows = rowsFor(tab).filter((r) => sexOk(r, listSex) && keep(r.n));
   if (listSort === 'az') rows.sort((a, b) => a.n.name.localeCompare(b.n.name, 'en'));
   else rows.sort((a, b) => a.n.rank - b.n.rank || a.n.name.localeCompare(b.n.name, 'en'));
   return rows;
@@ -356,12 +357,14 @@ function renderList() {
     $('.n', b).textContent = `(${fmt(listRows(b.dataset.tab).length)})`;
   }
   for (const b of $$('.sort button')) b.setAttribute('aria-pressed', String(b.dataset.sort === listSort));
+  $$('input[name=listsex]').forEach((i) => { i.checked = i.value === listSex; });
   $('.sort').hidden = listTab === 'ranked';
   const rows = listRows(listTab);
   if (!rows.length) {
     const li = document.createElement('li');
     li.className = 'none';
     li.textContent = listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
+      : listSex !== 'both' ? `No ${listSex} here yet.`
       : listTab === 'ranked' ? 'Nothing to rank yet. Like or love some names first.'
       : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!';
     ul.append(li);
@@ -425,8 +428,11 @@ function eloEntry(it) {
 }
 
 // Ranked list: by rating, with a position and a bar width (relative to the pool).
-function rankedRows() {
-  const items = rankItems().map((it) => ({ ...it, e: eloEntry(it) }));
+// A unisex item (same decision for both sexes) belongs to both the Boys and the Girls filter.
+const sexOk = (row, sex) => sex === 'both' || !!row.alt || row.n.sex === sex;
+
+function rankedRows(sex = 'both') {
+  const items = rankItems().filter((it) => sexOk(it, sex)).map((it) => ({ ...it, e: eloEntry(it) }));
   items.sort((a, b) => b.e.r - a.e.r || a.n.name.localeCompare(b.n.name, 'en'));
   const hi = items.length ? items[0].e.r : 0;
   const lo = items.length ? items[items.length - 1].e.r : 0;
@@ -651,6 +657,7 @@ function init() {
   $$('.tabs button').forEach((b) => b.addEventListener('click', () => { listTab = b.dataset.tab; listLimit = 100; renderList(); }));
   $$('.sort button').forEach((b) => b.addEventListener('click', () => { listSort = b.dataset.sort; renderList(); }));
   $('#list-search').addEventListener('input', (e) => { listQuery = e.target.value; listLimit = 100; renderList(); });
+  $$('input[name=listsex]').forEach((i) => i.addEventListener('change', () => { listSex = i.value; listLimit = 100; renderList(); }));
   $('#list-more').addEventListener('click', () => { listLimit += 200; renderList(); });
 
   $('#nickname').addEventListener('input', (e) => { state.settings.nickname = e.target.value.trim(); persist(); });
