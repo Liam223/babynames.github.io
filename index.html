@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baby Name Swiper</title>
+<meta name="description" content="Swipe through UK and Irish baby names, then rank your favourites head to head. Free, private, no sign-up.">
+<meta name="theme-color" content="#FBF6F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17161C" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%B6%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap">
+<link rel="stylesheet" href="./css/styles.css">
+</head>
+<body data-sex="both">
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <button class="brand" data-go="welcome" aria-label="Home">Baby Name Swiper</button>
+  <nav aria-label="Main">
+    <button class="nav-btn" data-go="list">My list</button>
+    <button class="nav-btn" data-go="settings" aria-label="Settings">Settings</button>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- Welcome -->
+  <section id="screen-welcome" class="screen" aria-labelledby="welcome-title">
+    <h1 id="welcome-title">Find the name.</h1>
+    <p class="lead">Swipe through thousands of UK and Irish baby names, then rank your favourites head to head.</p>
+
+    <div id="continue" class="panel" hidden>
+      <p class="panel-title">Welcome back</p>
+      <p id="continue-summary" class="muted"></p>
+      <button id="btn-continue" class="btn primary">Continue</button>
+    </div>
+
+    <fieldset class="group">
+      <legend>I'm looking for</legend>
+      <div class="seg" role="radiogroup" aria-label="Names for">
+        <label><input type="radio" name="sex" value="boys"><span>Boys</span></label>
+        <label><input type="radio" name="sex" value="girls"><span>Girls</span></label>
+        <label><input type="radio" name="sex" value="both"><span>Both</span></label>
+      </div>
+    </fieldset>
+
+    <label class="toggle">
+      <input type="checkbox" id="f-irish">
+      <span class="switch" aria-hidden="true"></span>
+      <span>Irish names only <span aria-hidden="true">☘️</span></span>
+    </label>
+
+    <fieldset class="group">
+      <legend>Popularity</legend>
+      <div class="seg wrap" role="radiogroup" aria-label="Popularity">
+        <label><input type="radio" name="pop" value="all"><span>All</span></label>
+        <label><input type="radio" name="pop" value="top500"><span>Top 500</span></label>
+        <label><input type="radio" name="pop" value="top100"><span>Top 100</span></label>
+        <label><input type="radio" name="pop" value="gems"><span>Hidden gems</span></label>
+      </div>
+    </fieldset>
+
+    <details class="group letters">
+      <summary>Starting letter <span id="letters-count" class="muted"></span></summary>
+      <div id="letters" class="chips" role="group" aria-label="Starting letters"></div>
+      <button id="letters-clear" class="link" type="button">Clear letters</button>
+    </details>
+
+    <button id="btn-start" class="btn primary big">Start swiping</button>
+    <p id="remaining" class="muted center" aria-live="polite"></p>
+  </section>
+
+  <!-- Swipe -->
+  <section id="screen-swipe" class="screen" hidden aria-label="Swipe round">
+    <div class="progress"><span id="progress"></span></div>
+    <div id="stage" class="stage"></div>
+    <div class="actions" role="group" aria-label="Decide">
+      <button id="btn-no" class="round no" aria-label="No thanks">✕</button>
+      <button id="btn-like" class="round like" aria-label="Like">♥</button>
+      <button id="btn-love" class="round love" aria-label="Love it">★</button>
+    </div>
+    <div class="subactions">
+      <button id="btn-undo" class="btn ghost">↶ Undo</button>
+      <button id="btn-rank" class="btn ghost" disabled>Rank favourites</button>
+    </div>
+    <p class="hint-keys muted center">Swipe, tap, or use ← → ↑ and Z to undo</p>
+  </section>
+
+  <!-- My list -->
+  <section id="screen-list" class="screen" hidden aria-labelledby="list-title">
+    <h1 id="list-title">My list</h1>
+    <div class="tabs" role="tablist" aria-label="List">
+      <button role="tab" data-tab="love">Loved <span class="n"></span></button>
+      <button role="tab" data-tab="like">Liked <span class="n"></span></button>
+      <button role="tab" data-tab="no">Eliminated <span class="n"></span></button>
+    </div>
+    <ul id="list" class="rows"></ul>
+    <button id="list-more" class="btn ghost" hidden>Show more</button>
+  </section>
+
+  <!-- Settings -->
+  <section id="screen-settings" class="screen" hidden aria-labelledby="settings-title">
+    <h1 id="settings-title">Settings</h1>
+    <label class="field">Your nickname (used when you share your list)
+      <input id="nickname" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Liam">
+    </label>
+    <div class="panel">
+      <p class="panel-title">Back up</p>
+      <p class="muted">Move your choices to another phone with a backup file.</p>
+      <div class="row">
+        <button id="btn-export" class="btn">Export backup</button>
+        <label class="btn file">Import backup<input id="file-import" type="file" accept="application/json,.json" hidden></label>
+      </div>
+      <p id="settings-msg" class="muted" role="status"></p>
+    </div>
+    <div class="panel danger">
+      <p class="panel-title">Reset</p>
+      <div class="row">
+        <button id="btn-reset-sex" class="btn">Reset current selection</button>
+        <button id="btn-reset-all" class="btn">Reset everything</button>
+      </div>
+    </div>
+    <p id="storage-warn" class="muted" hidden>Your browser is blocking storage, so progress won't be saved. Use Export backup to keep it.</p>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Your choices are saved only on this device.</p>
+  <p class="small">Contains public sector information licensed under the Open Government Licence v3.0 (ONS, National Records of Scotland, NISRA). Irish data from the CSO, licensed under CC BY 4.0.</p>
+</footer>
+
+<div id="live" class="sr" aria-live="polite" role="status"></div>
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>

@@ -624,3 +624,57 @@ Moya
 Moyra
 Colin
 Paddy
+# Added from CSO candidate scan (most common Irish-looking names missing from the list)
+Páidí
+Caolán
+Iarla
+Séimí
+Teidí
+Paudie
+Séamie
+Seán Óg
+Seánie
+Rossa
+Culann
+Con
+Ferdia
+Féilim
+Feidhlim
+Ógie
+Croí
+Donnchadh
+Thady
+Kealan
+Conal
+Caoilte
+Domhnall
+Caelan  # ?
+Olan  # ?
+Hughie  # ?
+Croía
+Alanna
+Alana
+Aodhla
+Fódhla
+Róise
+Liadh
+Saorlaith
+Aoibhí
+Aifric
+Aodha
+Éada
+Seoidín
+Éirinn
+Erin
+Réaltín
+Éadha
+Sadbh
+Sloane
+Fallon
+Mallaidh
+Aoileann
+Fiadhna
+Níadh
+Líadh
+Ríadh
+Croíadh

@@ -1,21 +1,16 @@
 # Tagged Irish by pattern heuristic only (not in curated list) - please review
-girls	Ríadh	221
-girls	Croíadh	161
 boys	Ruadh	135
-girls	Fódhla	129
-girls	Aodhla	108
-girls	Líadh	108
-girls	Aodha	106
-girls	Aoibhí	100
-girls	Éadha	69
-boys	Donnchadh	58
-boys	Féidhlim	47
-boys	Domhnall	46
-girls	Sadbh	44
-girls	Mallaidh	29
+boys	Ólan	60
+boys	Séadna	37
+girls	Réiltín	37
+girls	Réidín	36
+boys	Rí	30
+girls	Mollaí	26
 boys	Séadhna	24
-girls	Aoileann	23
-boys	Caoilte	19
+girls	Nóinín	24
+boys	Liam Óg	18
+girls	Síle	17
+girls	Réalta	15
 
 # In curated list but marked uncertain (# ?) - NOT tagged
 girls	Grace	11351
@@ -38,11 +33,13 @@ boys	Owen	2219
 girls	Cara	1544
 boys	Eddie	1384
 boys	Phoenix	1377
+boys	Caelan	1104
 boys	Eden	1103
 girls	Eilidh	816
 boys	Hugh	769
 girls	Iona	743
 boys	Kyle	725
+boys	Hughie	682
 girls	Blake	678
 girls	Kyra	663
 girls	Ruth	501

@@ -27,6 +27,7 @@ OUT = ROOT / "data"
 
 YEARS = range(2021, 2026)      # last 5 years available in every source
 MIN_TOTAL = 15                 # minimum combined count to keep a name
+IRISH_MIN_TOTAL = 5            # lower floor for names on the curated Irish list (still drops typos)
 VERSION = "2026-10"
 # An accented spelling is shown as the main card if it holds at least this share
 # of the group's total. NRS, NISRA and (mostly) ONS strip accents, so accented
@@ -49,6 +50,9 @@ HEURISTIC_EXCLUDE = {
 }
 # Heuristic tags also need at least this share of the name's total to come from the CSO.
 HEURISTIC_CSO_SHARE = 0.5
+# Names with a fada (á é í ó ú) that are almost only found in the CSO data are Irish-language spellings.
+FADA = re.compile("[áéíóú]")
+FADA_CSO_SHARE = 0.8
 
 NAME_OK = re.compile(r"^[^\W\d_][^\W\d_'’ \-]*(?:['’ \-][^\W\d_]+)*$", re.UNICODE)
 
@@ -61,7 +65,7 @@ def strip_accents(s: str) -> str:
 def tidy(raw) -> str | None:
     if raw is None:
         return None
-    n = str(raw).strip()
+    n = unicodedata.normalize("NFC", str(raw).strip())
     if len(n) < 2 or not NAME_OK.match(n):
         return None
     if n.isupper() or n.islower():
@@ -154,7 +158,7 @@ def build(sex, irish, uncertain, review):
     rows = []
     for key, g in groups.items():
         total = sum(g["spell"].values())
-        if total < MIN_TOTAL:
+        if total < (IRISH_MIN_TOTAL if key in irish else MIN_TOTAL):
             continue
         spells = sorted(g["spell"].items(), key=lambda kv: (-kv[1], kv[0]))
         accented = [kv for kv in spells if strip_accents(kv[0]) != kv[0].lower().replace("’", "'")]
@@ -164,7 +168,10 @@ def build(sex, irish, uncertain, review):
         variants = [s for s, _ in spells if s != display]
 
         flag = key in irish
-        if not flag and g["src"].get("CSO", 0) >= HEURISTIC_CSO_SHARE * total and IRISH_PATTERN.search(key) and key not in HEURISTIC_EXCLUDE:
+        cso = g["src"].get("CSO", 0)
+        by_pattern = cso >= HEURISTIC_CSO_SHARE * total and IRISH_PATTERN.search(key)
+        by_fada = cso >= FADA_CSO_SHARE * total and FADA.search(display.lower())
+        if not flag and (by_pattern or by_fada) and key not in HEURISTIC_EXCLUDE:
             flag = True
             review["heuristic"].append((sex, display, total))
         if not flag and key in uncertain:
