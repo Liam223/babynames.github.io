@@ -5,7 +5,10 @@
   "description": "UK and Irish baby names: swipe, compare, rank. Static site, no build step.",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "serve": "python scripts/serve.py"
+    "serve": "python scripts/serve.py",
+    "test:ci": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/gh-test-reporter.mjs --test-reporter-destination=stdout \"test/**/*.test.js\""
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

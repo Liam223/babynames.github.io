@@ -16,7 +16,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - run: npm test
+      - run: npm run test:ci
 
   deploy:
     # Only publish from main, and only once the tests have passed.
