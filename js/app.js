@@ -489,7 +489,7 @@ function rankedRows(pool) {
   return items;
 }
 
-function rankedRowEl({ n, alt, e, d, pos, pct }) {
+function rankedRowEl({ n, alt, e, d, pos, pct, pool }) {
   const li = document.createElement('li');
   li.className = 'ranked' + (pos <= 3 ? ' top' + pos : '');
   const badge = document.createElement('span');
@@ -514,7 +514,16 @@ function rankedRowEl({ n, alt, e, d, pos, pct }) {
   const score = document.createElement('span');
   score.className = 'score';
   score.textContent = fmt(Math.round(e.r));
-  li.append(badge, nm, score);
+  const rm = document.createElement('button');
+  rm.type = 'button';
+  rm.className = 'mini no';
+  rm.innerHTML = icon('x', 18);
+  rm.setAttribute('aria-label', `Eliminate ${n.name}`);
+  rm.addEventListener('click', () => {
+    state.decisions[pool][n.key] = 'no';       // only this sex's pool; a unisex name can still be wanted in the other
+    persist(); announce(`${n.name} eliminated`); renderList();
+  });
+  li.append(badge, nm, score, rm);
   return li;
 }
 
@@ -565,13 +574,7 @@ function renderRank(pair = null) {
     $('.pn', pick).style.setProperty('--len', String(Math.max(6, it.n.name.length)));
     $('.pi', pick).textContent = rank;
     pick.addEventListener('click', () => choose(side));
-    const rm = document.createElement('button');
-    rm.type = 'button';
-    rm.className = 'mini no remove';
-    rm.innerHTML = `${icon('x', 16)}<span>Remove</span>`;
-    rm.setAttribute('aria-label', `Remove ${it.n.name}`);
-    rm.addEventListener('click', () => removeFromRank(side));
-    opt.append(pick, rm);
+    opt.append(pick);
     stage.append(opt);
     if (side === 0) { const or = document.createElement('div'); or.className = 'or'; or.setAttribute('aria-hidden', 'true'); or.textContent = 'or'; stage.append(or); }
   });
@@ -620,16 +623,6 @@ function undoRank() {
   rankLast = u.last;
   persist(); announce('Undid last comparison');
   renderRank([u.w, u.l]);
-}
-
-// Removing a name from a pool only affects that sex (a unisex name can still be wanted in the other pool).
-function removeFromRank(side) {
-  if (!rankPair || rankBusy) return;
-  const it = rankPair[side];
-  state.decisions[rankPool][it.n.key] = 'no';
-  rankUndo = rankUndo.filter((u) => u.w.id !== it.id && u.l.id !== it.id);
-  persist(); announce(`${it.n.name} removed`);
-  renderRank();
 }
 
 /* ---------- settings ---------- */

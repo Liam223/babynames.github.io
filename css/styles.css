@@ -402,3 +402,7 @@ body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
 .pool-seg span { min-height: 44px; }
 .cnt { margin-left: 6px; padding: 1px 7px; border-radius: 9px; background: color-mix(in srgb, currentColor 14%, transparent); font-size: .75rem; font-weight: 800; }
 .seg input:disabled + span { opacity: .5; border-style: dashed; box-shadow: none; cursor: not-allowed; }
+
+/* Ranked rows: a quiet eliminate button so the ranking stays the focus */
+.rows li.ranked .mini.no { background: color-mix(in srgb, var(--red) 12%, var(--surface)); color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, transparent); box-shadow: none; }
+.rows li.ranked .mini.no:active { background: var(--red); color: var(--on-red); }
