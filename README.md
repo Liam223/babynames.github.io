@@ -113,6 +113,14 @@ npm run screenshots
 
 This opens the app with a fixed demo state, saves the six images in `docs/screenshots/`, and updates the `?v=` tags in this README (a short hash of each image, so a tag only changes when its picture does). Run it after a visual change and commit the result.
 
+### Social preview image
+
+```bash
+npm run social-preview
+```
+
+Renders `docs/social-preview.png` (1280×640, GitHub's size) from the logo, font and current screenshots. GitHub has no API for this, so upload it by hand: **Settings → General → Social preview → Edit → Upload an image**. It is what shows when the repo link is shared.
+
 ### Deploying
 
 Every push to `main` runs [`.github/workflows/pages.yml`](.github/workflows/pages.yml): the unit tests first, then, only if they pass, a deploy to GitHub Pages of just the files the app needs (`index.html`, `css/`, `js/`, `data/`, `fonts/`, `icons/`), assembled by `scripts/assemble-site.mjs`, which also fails the build if the page, stylesheet or a script refers to a file that isn't included. The browser tests run as a separate job and don't gate the deploy. Pull requests run the tests but never deploy.
@@ -158,6 +166,7 @@ scripts/
   build-info.py         Builds data/info.json from Wiktionary and Wikipedia (needs internet)
   build-history.py      Builds data/history/*.json from the raw files in data-src/ (offline)
   assemble-site.mjs     Copies the published files into _site/ and checks every reference resolves (used by the deploy job)
+  social-preview.mjs    Renders the 1280x640 repository social preview image
   screenshots.mjs       Retakes the README screenshots and refreshes their tags (`npm run screenshots`)
   gh-test-reporter.mjs  Test reporter for Actions: results table and failure annotations
   serve.py              Local static server

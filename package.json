@@ -8,7 +8,8 @@
     "serve": "python scripts/serve.py",
     "test:ci": "node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/gh-test-reporter.mjs --test-reporter-destination=stdout \"test/**/*.test.js\"",
     "e2e": "playwright test",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "social-preview": "node scripts/social-preview.mjs"
   },
   "engines": {
     "node": ">=22"
