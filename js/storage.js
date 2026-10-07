@@ -37,6 +37,45 @@ export function migrate(raw) {
   if (!raw.comparedBy && raw.compared) s.comparedBy.boys = raw.compared;   // old saves had one shared count
   // if ((raw.v || 1) < 2) { ...future migrations here... }
   s.v = STATE_VERSION;
+  return sanitize(s);
+}
+
+const SEXES = ['boys', 'girls'];
+const DECISIONS = ['no', 'like', 'love'];
+const POPS = ['all', 'top500', 'top100', 'gems', 'retro'];
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+const isCount = (v) => Number.isInteger(v) && v >= 0;
+
+// A backup file is untrusted input. Keep only values of the expected shape and drop the rest, so a damaged or
+// hand-edited file can't put anything unexpected on the page. Valid saves pass through unchanged.
+function sanitize(s) {
+  const d = defaultState();
+  const st = s.settings;
+  if (!['both', ...SEXES].includes(st.sex)) st.sex = d.settings.sex;
+  if (!POPS.includes(st.pop)) st.pop = d.settings.pop;
+  st.irish = st.irish === true;
+  st.letters = Array.isArray(st.letters) ? [...new Set(st.letters.filter((l) => typeof l === 'string' && /^[A-Z]$/.test(l)))] : [];
+  st.nickname = typeof st.nickname === 'string' ? st.nickname.slice(0, 100) : '';
+  if (st.lastPool !== null && !SEXES.includes(st.lastPool)) st.lastPool = null;
+  const hint = (v) => (isNum(v) && v >= 0 ? v : 0);
+  st.rankHintNext = st.rankHintNext && typeof st.rankHintNext === 'object'
+    ? { boys: hint(st.rankHintNext.boys), girls: hint(st.rankHintNext.girls) }
+    : hint(st.rankHintNext);
+  for (const sex of SEXES) {
+    const dec = {};
+    for (const [k, v] of Object.entries(s.decisions[sex] || {})) if (DECISIONS.includes(v)) dec[k] = v;
+    s.decisions[sex] = dec;
+    const elo = {};
+    for (const [k, e] of Object.entries(s.elo[sex] || {})) if (e && isNum(e.r) && isCount(e.n)) elo[k] = { r: e.r, n: e.n };
+    s.elo[sex] = elo;
+    if (!isCount(s.comparedBy[sex])) s.comparedBy[sex] = 0;
+  }
+  if (!isCount(s.queue.seed)) s.queue.seed = d.queue.seed;
+  if (!isCount(s.queue.pos)) s.queue.pos = 0;
+  s.priority = s.priority.filter((p) => typeof p === 'string' && /^(boys|girls):/.test(p));
+  s.history = s.history.filter((h) => h && SEXES.includes(h.s) && typeof h.k === 'string' && DECISIONS.includes(h.d) && (h.src === 'p' || h.src === 'q'));
+  if (s.dataVersion !== null && typeof s.dataVersion !== 'string') s.dataVersion = null;
+  if (!isCount(s.compared)) s.compared = 0;
   return s;
 }
 

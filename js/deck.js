@@ -3,7 +3,7 @@ import { HISTORY_CAP } from './storage.js';
 import { sexesFor, isPrimary, trend, standout, COUNTRY_SHORT } from './names.js';
 import { icon } from './icons.js';
 import { attachSwipe } from './swipe.js';
-import { $, ui, state, data, screens, persist, announce, fmt, merged, decisionOf, counts, summary, reduced, askPersistence } from './core.js';
+import { $, ui, state, data, screens, persist, announce, fmt, esc, merged, decisionOf, counts, summary, reduced, askPersistence } from './core.js';
 import { openInfo } from './info.js';
 
 let queue = [];           // ordered name objects for the current filters
@@ -105,7 +105,7 @@ function cardEl(n) {
   el.className = 'card';
   el.dataset.sex = both ? 'both' : n.sex;
   const tiles = n.countryRank.map((r, i) => {
-    const label = meta.countries[i];
+    const label = esc(meta.countries[i]);
     const txt = r && r <= 9999 ? `#${fmt(r)}` : '–';
     return `<li class="${r ? '' : 'none'}" aria-label="${label}: ${r ? 'ranked ' + fmt(r) : 'not listed'}" title="${label}"><b aria-hidden="true">${COUNTRY_SHORT[i]}</b><span aria-hidden="true">${txt}</span></li>`;
   }).join('');

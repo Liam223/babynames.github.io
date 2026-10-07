@@ -60,11 +60,11 @@ function renderInfo() {
   // your choice and rating sit with the other tags, on the right (nothing is shown until you've decided)
   const dec = state.decisions[n.sex][n.key];
   const rating = state.elo[n.sex][n.key];
-  if (dec) {
-    const ic = { love: 'star', like: 'heart', no: 'x' }[dec];
-    const word = { love: 'Loved', like: 'Liked', no: 'Eliminated' }[dec];
-    const rate = rating && rating.n ? `<span class="rate" title="Rating after ${rating.n} comparison${rating.n === 1 ? '' : 's'}">${fmt(Math.round(rating.r))}</span>` : '';
-    chips.push(`<span class="ichip choice ${dec}">${icon(ic, 14)}${word}${rate}</span>`);
+  const choice = { love: ['star', 'Loved'], like: ['heart', 'Liked'], no: ['x', 'Eliminated'] }[dec];
+  if (choice) {
+    const cmp = rating && rating.n;
+    const rate = cmp ? `<span class="rate" title="Rating after ${fmt(cmp)} comparison${cmp === 1 ? '' : 's'}">${fmt(Math.round(rating.r))}</span>` : '';
+    chips.push(`<span class="ichip choice ${dec}">${icon(choice[0], 14)}${choice[1]}${rate}</span>`);
   }
   out.push(`<div class="ichips">${chips.join('')}</div>`);
 

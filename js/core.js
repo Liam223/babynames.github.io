@@ -79,6 +79,8 @@ export const totalCompared = () => comparedIn('boys') + comparedIn('girls');
 export const poolSize = (pool) => Object.values(state.decisions[pool]).filter((d) => d === 'like' || d === 'love').length;
 
 export const ptitle = (iconName, cls, text) => `<p class="panel-title"><span class="p-ic ${cls}">${icon(iconName, 16)}</span>${text}</p>`;
+// Escaping rule for HTML built from strings: anything that isn't a literal in this code (data files, saved state,
+// imported backups) goes through esc(), or is set with textContent / setAttribute instead of innerHTML.
 export const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 let persistAsked = false;
