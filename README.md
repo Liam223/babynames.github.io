@@ -119,7 +119,7 @@ This opens the app with a fixed demo state, saves the six images in `docs/screen
 npm run social-preview
 ```
 
-Renders `docs/social-preview.png` (1280×640, GitHub's size) from the logo, font and current screenshots. GitHub has no API for this, so upload it by hand: **Settings → General → Social preview → Edit → Upload an image**. It is what shows when the repo link is shared.
+Renders `docs/social-preview.png` (1280×640, GitHub's size) from the logo, font and current screenshots. GitHub has no API for this, so upload it by hand: **Settings → General → Social preview → Edit → Upload an image**. It is what shows when the *repository* link is shared. The same image is published with the site, and `index.html` has Open Graph tags pointing at it, so a link to the app itself gets the same card. Chat apps cache these, so use their debugger (for example Facebook's Sharing Debugger) to refresh after a change.
 
 ### Deploying
 

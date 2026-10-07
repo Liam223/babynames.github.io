@@ -7,10 +7,12 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const out = join(root, '_site');
 const PUBLISH = ['index.html', 'css', 'js', 'data', 'fonts', 'icons'];
+const EXTRA = [['docs/social-preview.png', 'social-preview.png']];      // [from the repo, to the site root]
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out);
 for (const item of PUBLISH) cpSync(join(root, item), join(out, item), { recursive: true });
+for (const [from, to] of EXTRA) cpSync(join(root, from), join(out, to));
 
 // Every local reference must resolve inside _site. Data fetched at run time lives in data/, which is copied whole.
 const read = (file) => readFileSync(join(out, file), 'utf-8');
@@ -23,6 +25,9 @@ const check = (from, ref) => {
 
 const html = read('index.html');
 for (const [, ref] of html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)) check('index.html', ref);
+
+// The share-card image is referenced by an absolute URL, so check the file it points at is published.
+for (const [, ref] of html.matchAll(/property="og:image" content="https:\/\/[^/]+\/[^/]+\/([^"]+)"/g)) check('index.html', `./${ref}`);
 
 const css = read('css/styles.css');
 for (const [, ref] of css.matchAll(/url\("?(?!data:|%23|#)([^")]+)"?\)/g)) check('css/styles.css', ref);   // not data: images or their #fragment refs
