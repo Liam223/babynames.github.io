@@ -102,6 +102,24 @@
     <p class="hint-keys muted center">Swipe, tap, or use ← → ↑ and Z to undo</p>
   </section>
 
+  <!-- Ranking round -->
+  <section id="screen-rank" class="screen" hidden aria-labelledby="rank-title">
+    <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
+    <h1 id="rank-title"><span class="h-ic yellow" data-icon="star" data-size="22"></span>Which do you prefer?</h1>
+    <p id="rank-progress" class="muted"></p>
+    <div id="rank-hint" class="coach" hidden>
+      <p>Nice one. Have a look at your top 10 so far.</p>
+      <button class="btn green-btn" data-go="list-ranked">See my ranking</button>
+    </div>
+    <div id="rank-stage" class="rank-stage"></div>
+    <div class="subactions">
+      <button id="rank-skip" class="btn ghost">Can't decide</button>
+      <button id="rank-undo" class="btn ghost"><span data-icon="undo" data-size="18"></span>Undo</button>
+    </div>
+    <div class="subactions"><button class="btn" data-go="list-ranked">See my ranking</button></div>
+    <p class="hint-keys muted center">← → to choose, S to skip, Z to undo</p>
+  </section>
+
   <!-- My list -->
   <section id="screen-list" class="screen" hidden aria-labelledby="list-title">
     <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
@@ -111,6 +129,7 @@
       <input id="list-search" type="search" placeholder="Search your list" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search your list">
     </div>
     <div class="tabs" role="tablist" aria-label="List">
+      <button role="tab" data-tab="ranked">Ranked <span class="n"></span></button>
       <button role="tab" data-tab="love">Loved <span class="n"></span></button>
       <button role="tab" data-tab="like">Liked <span class="n"></span></button>
       <button role="tab" data-tab="no">Eliminated <span class="n"></span></button>
@@ -122,6 +141,7 @@
     </div>
     <ul id="list" class="rows"></ul>
     <button id="list-more" class="btn ghost" hidden>Show more</button>
+    <button id="rank-more" class="btn primary" data-go="rank" hidden><span data-icon="star" data-size="18"></span>Compare more names</button>
   </section>
 
   <!-- Settings -->

@@ -1,6 +1,7 @@
 import { load, save, flush, defaultState, exportJSON, parseImport, HISTORY_CAP, storageOk } from './storage.js';
 import { loadSex, sexesFor, SEXES, linkUnisex, isPrimary, trend, standout, nameKey, COUNTRY_SHORT } from './names.js';
 import { icon, hydrateIcons } from './icons.js';
+import { CONFIG, startRating, applyResult, pickPair, pairKey } from './elo.js';
 import { attachSwipe } from './swipe.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -112,15 +113,21 @@ function toast(msg) {
 }
 
 /* ---------- screens ---------- */
-function show(name) {
-  if (name === 'swipe' && !SEXES.every((x) => data[x])) return;   // names still loading
+function show(name, opts = {}) {
+  if ((name === 'swipe' || name === 'rank') && !SEXES.every((x) => data[x])) return;   // names still loading
   screen = name;
   for (const s of $$('.screen')) s.hidden = s.id !== 'screen-' + name;
   document.body.dataset.sex = name === 'swipe' || name === 'welcome' ? state.settings.sex : 'both';
   if (name === 'welcome') renderWelcome();
   if (name === 'swipe') renderSwipe();
   for (const b of $$('.nav-btn')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
-  if (name === 'list') { listQuery = ''; $('#list-search').value = ''; listLimit = 100; listTab = ['love', 'like', 'no'].find((t) => listRows(t).length) || 'love'; renderList(); }
+  if (name === 'rank') renderRank();
+  if (name === 'list') {
+    listQuery = ''; $('#list-search').value = ''; listLimit = 100;
+    const has = (t) => (t === 'ranked' ? state.compared > 0 && rankedRows().length >= 2 : rowsFor(t).length > 0);
+    listTab = opts.tab || ['ranked', 'love', 'like', 'no'].find(has) || 'love';
+    renderList();
+  }
   if (name === 'settings') renderSettings();
   scrollTo(0, 0);
 }
@@ -314,7 +321,7 @@ function burst() {
 
 /* ---------- list ---------- */
 // Rows for a tab. A name decided the same way for boys and girls is one row (with `alt` set).
-function listRows(tab) {
+function rowsFor(tab) {
   const rows = [];
   for (const sex of SEXES) {
     for (const [key, d] of Object.entries(state.decisions[sex])) {
@@ -326,9 +333,15 @@ function listRows(tab) {
       rows.push({ n, alt });
     }
   }
+  return rows;
+}
+
+// Rows for a tab, with the search applied (and the sort, except for Ranked, which is always by rating).
+function listRows(tab) {
   const q = nameKey(listQuery.trim());
   const keep = (n) => !q || nameKey(n.name).includes(q) || n.variants.some((v) => nameKey(v).includes(q));
-  if (q) rows.splice(0, rows.length, ...rows.filter((r) => keep(r.n)));
+  if (tab === 'ranked') return rankedRows().filter((r) => keep(r.n));
+  const rows = rowsFor(tab).filter((r) => keep(r.n));
   if (listSort === 'az') rows.sort((a, b) => a.n.name.localeCompare(b.n.name, 'en'));
   else rows.sort((a, b) => a.n.rank - b.n.rank || a.n.name.localeCompare(b.n.name, 'en'));
   return rows;
@@ -343,15 +356,19 @@ function renderList() {
     $('.n', b).textContent = `(${fmt(listRows(b.dataset.tab).length)})`;
   }
   for (const b of $$('.sort button')) b.setAttribute('aria-pressed', String(b.dataset.sort === listSort));
+  $('.sort').hidden = listTab === 'ranked';
   const rows = listRows(listTab);
   if (!rows.length) {
     const li = document.createElement('li');
     li.className = 'none';
     li.textContent = listQuery.trim() ? `No names match “${listQuery.trim()}” here.`
+      : listTab === 'ranked' ? 'Nothing to rank yet. Like or love some names first.'
       : listTab === 'no' ? 'Nothing eliminated yet.' : 'Nothing here yet. Go and swipe!';
     ul.append(li);
   }
-  for (const { n, alt } of rows.slice(0, listLimit)) {
+  for (const row of rows.slice(0, listLimit)) {
+    if (listTab === 'ranked') { ul.append(rankedRowEl(row)); continue; }
+    const { n, alt } = row;
     const li = document.createElement('li');
     const nm = document.createElement('span');
     nm.className = 'nm';
@@ -382,6 +399,157 @@ function renderList() {
     ul.append(li);
   }
   $('#list-more').hidden = rows.length <= listLimit;
+  $('#rank-more').hidden = listTab !== 'ranked' || rankedRows().length < 2;
+}
+
+/* ---------- ranking (this-or-that) ---------- */
+let rankPair = null;              // [item, item] currently on screen
+let rankLast = null;              // key of the previous pair (never repeated straight away)
+const rankSeen = new Set();       // pairs already shown this session
+let rankUndo = [];                // votes that can be undone (this session only)
+let rankBusy = false;
+
+// Everything currently Liked or Loved (a unisex name decided the same way for both sexes is one item).
+function rankItems() {
+  const out = [];
+  for (const d of ['love', 'like']) {
+    for (const { n, alt } of rowsFor(d)) out.push({ id: `${n.sex}:${n.key}`, n, alt, d });
+  }
+  return out;
+}
+
+function eloEntry(it) {
+  const store = state.elo[it.n.sex];
+  if (!store[it.n.key]) store[it.n.key] = { r: startRating(it.d), n: 0 };
+  return store[it.n.key];
+}
+
+// Ranked list: by rating, with a position and a bar width (relative to the pool).
+function rankedRows() {
+  const items = rankItems().map((it) => ({ ...it, e: eloEntry(it) }));
+  items.sort((a, b) => b.e.r - a.e.r || a.n.name.localeCompare(b.n.name, 'en'));
+  const hi = items.length ? items[0].e.r : 0;
+  const lo = items.length ? items[items.length - 1].e.r : 0;
+  items.forEach((it, i) => { it.pos = i + 1; it.pct = hi === lo ? 100 : 12 + (88 * (it.e.r - lo)) / (hi - lo); });
+  return items;
+}
+
+function rankedRowEl({ n, alt, e, d, pos, pct }) {
+  const li = document.createElement('li');
+  li.className = 'ranked' + (pos <= 3 ? ' top' + pos : '');
+  const badge = document.createElement('span');
+  badge.className = 'pos';
+  badge.textContent = pos;
+  const nm = document.createElement('span');
+  nm.className = 'nm';
+  const title = document.createElement('span');
+  title.textContent = n.name + (n.irish || (alt && alt.irish) ? ' ☘️' : '');
+  const small = document.createElement('small');
+  const who = alt ? 'Unisex' : n.sex === 'boys' ? 'Boy' : 'Girl';
+  small.textContent = `${who} · ${d === 'love' ? 'Loved' : 'Liked'} · ${e.n ? `${e.n} comparison${e.n === 1 ? '' : 's'}` : 'not compared yet'}`;
+  const bar = document.createElement('span');
+  bar.className = 'bar';
+  bar.setAttribute('role', 'img');
+  bar.setAttribute('aria-label', `Rating ${Math.round(e.r)}`);
+  const fill = document.createElement('span');
+  fill.className = 'fill ' + d;
+  fill.style.width = pct + '%';
+  bar.append(fill);
+  nm.append(title, small, bar);
+  const score = document.createElement('span');
+  score.className = 'score';
+  score.textContent = fmt(Math.round(e.r));
+  li.append(badge, nm, score);
+  return li;
+}
+
+function renderRank(pair = null) {
+  document.body.dataset.sex = 'both';
+  const items = rankItems();
+  const stage = $('#rank-stage');
+  stage.textContent = '';
+  $('#rank-progress').textContent = `${fmt(state.compared)} comparison${state.compared === 1 ? '' : 's'} · ${fmt(items.length)} names in the running`;
+  $('#rank-hint').hidden = state.compared < CONFIG.hintAfter;
+  $('#rank-undo').disabled = rankUndo.length === 0;
+  $('#rank-skip').disabled = items.length < 2;
+  if (items.length < 2) {
+    rankPair = null;
+    stage.innerHTML = `<div class="empty"><h2>Not enough names yet</h2><p class="muted">Like or love at least two names, then come back to compare them.</p>
+      <button class="btn primary" data-go="swipe">Back to swiping</button></div>`;
+    return;
+  }
+  rankPair = pair && pair.every((p) => items.some((i) => i.id === p.id)) ? pair
+    : pickPair(items, eloEntry, { last: rankLast, seen: rankSeen, compared: state.compared });
+  rankPair.forEach((it, side) => {
+    const opt = document.createElement('div');
+    opt.className = 'opt';
+    const pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'pick ' + it.d;
+    pick.setAttribute('aria-label', `I prefer ${it.n.name}`);
+    const irish = it.n.irish || (it.alt && it.alt.irish);
+    const rank = it.alt ? `Boys #${fmt(it.n.rank)} · Girls #${fmt(it.alt.rank)}` : `#${fmt(it.n.rank)} · ${fmt(it.n.count)} babies`;
+    pick.innerHTML = `<span class="tag">${icon(it.d === 'love' ? 'star' : 'heart', 15)}${it.d === 'love' ? 'Loved' : 'Liked'}</span>
+      <span class="pn"></span><span class="pi"></span>`;
+    $('.pn', pick).textContent = it.n.name + (irish ? ' ☘️' : '');
+    $('.pi', pick).textContent = rank;
+    pick.addEventListener('click', () => choose(side));
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'mini no remove';
+    rm.innerHTML = `${icon('x', 16)}<span>Remove</span>`;
+    rm.setAttribute('aria-label', `Remove ${it.n.name}`);
+    rm.addEventListener('click', () => removeFromRank(side));
+    opt.append(pick, rm);
+    stage.append(opt);
+    if (side === 0) { const or = document.createElement('div'); or.className = 'or'; or.setAttribute('aria-hidden', 'true'); or.textContent = 'or'; stage.append(or); }
+  });
+}
+
+function choose(side) {
+  if (!rankPair || rankBusy) return;
+  const [w, l] = side === 0 ? rankPair : [rankPair[1], rankPair[0]];
+  const ew = eloEntry(w), el = eloEntry(l);
+  rankUndo.push({ w, l, ew: { ...ew }, el: { ...el }, last: rankLast });
+  if (rankUndo.length > 50) rankUndo.shift();
+  applyResult(ew, el);
+  state.compared++;
+  const key = pairKey(w, l);
+  rankLast = key; rankSeen.add(key);
+  persist();
+  announce(`${w.n.name} over ${l.n.name}`);
+  const picked = $$('#rank-stage .pick')[side];
+  if (picked) picked.classList.add('won');
+  rankBusy = true;
+  setTimeout(() => { rankBusy = false; if (screen === 'rank') renderRank(); }, reduced() ? 0 : 280);
+}
+
+function skipRank() {
+  if (!rankPair || rankBusy) return;
+  const key = pairKey(rankPair[0], rankPair[1]);
+  rankSeen.add(key); rankLast = key;
+  renderRank();
+}
+
+function undoRank() {
+  const u = rankUndo.pop();
+  if (!u) return;
+  Object.assign(eloEntry(u.w), u.ew);
+  Object.assign(eloEntry(u.l), u.el);
+  state.compared = Math.max(0, state.compared - 1);
+  rankLast = u.last;
+  persist(); announce('Undid last comparison');
+  renderRank([u.w, u.l]);
+}
+
+function removeFromRank(side) {
+  if (!rankPair || rankBusy) return;
+  const it = rankPair[side];
+  state.decisions[it.n.sex][it.n.key] = 'no';
+  if (it.alt) state.decisions[it.alt.sex][it.alt.key] = 'no';
+  rankUndo = rankUndo.filter((u) => u.w.id !== it.id && u.l.id !== it.id);
+  persist(); announce(`${it.n.name} removed`);
+  renderRank();
 }
 
 /* ---------- settings ---------- */
@@ -444,7 +612,7 @@ function init() {
   initLetters();
   document.addEventListener('click', (e) => {
     const g = e.target.closest('[data-go]');
-    if (g) show(g.dataset.go);
+    if (g) { const t = g.dataset.go; if (t === 'list-ranked') show('list', { tab: 'ranked' }); else show(t); }
   });
   $$('input[name=sex]').forEach((i) => i.addEventListener('change', () => setSetting({ sex: i.value })));
   $$('input[name=pop]').forEach((i) => i.addEventListener('change', () => setSetting({ pop: i.value })));
@@ -458,7 +626,16 @@ function init() {
   $('#btn-like').addEventListener('click', act('like'));
   $('#btn-love').addEventListener('click', act('love'));
   $('#btn-undo').addEventListener('click', undo);
-  $('#btn-rank').addEventListener('click', () => toast('The ranking round is coming in the next update.'));
+  $('#btn-rank').addEventListener('click', () => show('rank'));
+  $('#rank-skip').addEventListener('click', skipRank);
+  $('#rank-undo').addEventListener('click', undoRank);
+  document.addEventListener('keydown', (e) => {
+    if (screen !== 'rank' || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); choose(0); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); choose(1); }
+    else if (e.key === 's' || e.key === 'S') { e.preventDefault(); skipRank(); }
+    else if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undoRank(); }
+  });
   document.addEventListener('keydown', (e) => {
     if (screen !== 'swipe' || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
     const map = { ArrowLeft: 'no', ArrowRight: 'like', ArrowUp: 'love' };
