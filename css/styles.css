@@ -356,3 +356,40 @@ details.letters .chips { margin-top: 12px; }
 .sortbtn:active { transform: translateY(2px); box-shadow: none; }
 .titlebar h1 { font-size: 1.75rem; white-space: nowrap; }
 .titlebar .btn.compare { padding: 0 12px; font-size: .92rem; }
+
+
+/* ---------- main navigation: bottom tab bar on phones, header buttons on wider screens ---------- */
+:root { --tabbar-h: 78px; }
+body { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+.top .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 2px solid var(--line); }
+.tab { --c: var(--green); --cd: var(--green-d); --on: var(--on-green);
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 4px 2px;
+  border-radius: 14px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 800; font-size: .72rem; box-shadow: 0 2px 0 var(--line); }
+.tab .tab-ic { color: var(--cd); }
+.t-compare { --c: var(--yellow); --cd: var(--yellow-d); --on: var(--on-yellow); }
+.t-list { --c: var(--red); --cd: var(--red); --on: var(--on-red); }
+.t-settings { --c: var(--blue); --cd: var(--blue); --on: var(--on-blue); }
+.t-swipe .tab-ic .icon, .t-compare .tab-ic .icon, .t-list .tab-ic .icon { fill: currentColor; }
+.t-swipe .tab-ic .icon { fill: none; }
+.tab[aria-current="page"] { background: var(--c); color: var(--on); border-color: var(--c); box-shadow: 0 2px 0 var(--cd); }
+.tab[aria-current="page"] .tab-ic { color: var(--on); }
+.tab:active { transform: translateY(2px); box-shadow: none; }
+.tab.locked { border-style: dashed; border-color: var(--edge); background: transparent; color: var(--muted); box-shadow: none; }
+.tab.locked .tab-ic { color: var(--muted); }
+.tab.locked .tab-ic .icon { fill: none; }
+.tab-badge { position: absolute; top: -9px; right: 4px; padding: 1px 7px; border-radius: 9px; background: var(--ink); color: var(--bg); font-size: .66rem; font-weight: 800; white-space: nowrap; }
+.t-compare[aria-current="page"].locked { background: transparent; color: var(--muted); }
+
+/* the old Back / Compare buttons are gone, so tighten the toast: it floats above the bar */
+.toast { position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + 12px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 40; margin: 0; width: max-content; max-width: min(92vw, 420px); }
+
+@media (min-width: 700px) {
+  body { padding-bottom: 0; }
+  .top .tabbar { position: static; display: flex; gap: 8px; padding: 0; background: none; border: 0; }
+  .tab { flex-direction: row; gap: 8px; min-height: 46px; padding: 0 14px; font-size: .95rem; }
+  .tab-badge { position: static; margin-left: 2px; }
+  .toast { bottom: 24px; }
+  .top { max-width: 920px; }
+  .tab-label { white-space: nowrap; }
+}

@@ -21,9 +21,11 @@
     <g transform="rotate(-4 47 47)"><rect x="34" y="34" width="26" height="26" rx="5" fill="#FFF8E6" stroke="#3E9150" stroke-width="4"/><text x="47" y="54" fill="#D5473B">Y</text></g>
   </g>
 </svg><span class="brand-text">Baby Name Swiper</span></button>
-  <nav aria-label="Main">
-    <button class="nav-btn nav-list" data-go="list" aria-label="My list"><span data-icon="heart" data-size="20"></span><span class="nav-label">My list</span></button>
-    <button class="nav-btn nav-settings" data-go="settings" aria-label="Settings"><span data-icon="gear" data-size="20"></span><span class="nav-label">Settings</span></button>
+  <nav class="tabbar" aria-label="Main">
+    <button class="tab t-swipe" data-go="swipe"><span class="tab-ic" data-icon="layers" data-size="22"></span><span class="tab-label">Swipe</span></button>
+    <button class="tab t-compare" data-go="rank"><span class="tab-ic" data-icon="star" data-size="22"></span><span class="tab-label">Compare</span><span id="compare-badge" class="tab-badge" hidden></span></button>
+    <button class="tab t-list" data-go="list"><span class="tab-ic" data-icon="heart" data-size="22"></span><span class="tab-label">My list</span></button>
+    <button class="tab t-settings" data-go="settings"><span class="tab-ic" data-icon="gear" data-size="22"></span><span class="tab-label">Settings</span></button>
   </nav>
 </header>
 
@@ -100,15 +102,13 @@
     </div>
     <div class="subactions">
       <button id="btn-undo" class="btn ghost"><span data-icon="undo" data-size="18"></span>Undo</button>
-      <button id="btn-rank" class="btn ghost" disabled>Rank favourites</button>
+      <button class="btn ghost" data-go="welcome"><span data-icon="sliders" data-size="18"></span>Filters</button>
     </div>
-    <p id="toast" class="toast" role="status" hidden></p>
     <p class="hint-keys muted center">Swipe, tap, or use ← → ↑ and Z to undo</p>
   </section>
 
   <!-- Ranking round -->
   <section id="screen-rank" class="screen" hidden aria-labelledby="rank-title">
-    <button class="btn back" data-go="swipe"><span data-icon="arrow-left" data-size="18"></span>Back to swiping</button>
     <h1 id="rank-title"><span class="h-ic yellow" data-icon="star" data-size="22"></span>Which do you prefer?</h1>
     <p id="rank-progress" class="muted"></p>
     <aside id="rank-hint" class="nudge" hidden aria-label="Tip">
@@ -129,9 +129,7 @@
   <!-- My list -->
   <section id="screen-list" class="screen" hidden aria-labelledby="list-title">
     <div class="titlebar">
-      <button class="iconbtn" data-go="swipe" aria-label="Back to swiping"><span data-icon="arrow-left" data-size="22"></span></button>
       <h1 id="list-title">My list</h1>
-      <button id="rank-more" class="btn compare" data-go="rank"><span data-icon="star" data-size="18"></span><span class="lbl">Compare</span></button>
     </div>
     <div class="search">
       <span class="search-ic" data-icon="search" data-size="18"></span>
@@ -158,7 +156,6 @@
   <!-- Settings -->
   <section id="screen-settings" class="screen" hidden aria-labelledby="settings-title">
     <div class="titlebar">
-      <button class="iconbtn" data-go="swipe" aria-label="Back to swiping"><span data-icon="arrow-left" data-size="22"></span></button>
       <h1 id="settings-title">Settings</h1>
     </div>
     <div class="panel">
@@ -192,6 +189,7 @@
   <p class="small">Contains public sector information licensed under the Open Government Licence v3.0 (ONS, National Records of Scotland, NISRA). Irish data from the CSO, licensed under CC BY 4.0.</p>
 </footer>
 
+<p id="toast" class="toast" role="status" hidden></p>
 <div id="live" class="sr" aria-live="polite" role="status"></div>
 <script type="module" src="./js/app.js"></script>
 </body>

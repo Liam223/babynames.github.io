@@ -20,7 +20,7 @@ let listLimit = 100;
 let listQuery = '';
 let listSex = 'both';          // My list filter: both | boys | girls
 
-const persist = () => save(state);
+const persist = () => { save(state); updateTabs(); };
 const announce = (msg) => { $('#live').textContent = ''; setTimeout(() => { $('#live').textContent = msg; }, 20); };
 const fmt = (n) => n.toLocaleString('en-GB');
 const merged = () => state.settings.sex === 'both';   // boys and girls mixed: names used for both appear once
@@ -113,6 +113,29 @@ function toast(msg) {
   toast.t = setTimeout(() => { t.hidden = true; }, 3500);
 }
 
+/* ---------- tab bar ---------- */
+const COMPARE_MIN = 4;     // liked or loved names needed before comparing makes sense
+
+// The Compare tab is locked (greyed, with an 'N more' badge) until there are enough names.
+function updateTabs() {
+  const c = counts(SEXES);
+  const need = COMPARE_MIN - (c.like + c.love);
+  const tab = $('.t-compare');
+  if (!tab) return;
+  const locked = need > 0;
+  tab.classList.toggle('locked', locked);
+  if (locked) {
+    tab.setAttribute('aria-disabled', 'true');
+    tab.dataset.lockMsg = `Like or love ${need} more name${need === 1 ? '' : 's'} to start comparing`;
+  } else {
+    tab.removeAttribute('aria-disabled');
+    delete tab.dataset.lockMsg;
+  }
+  const badge = $('#compare-badge');
+  badge.hidden = !locked;
+  badge.textContent = locked ? `${need} more` : '';
+}
+
 /* ---------- screens ---------- */
 function show(name, opts = {}) {
   if ((name === 'swipe' || name === 'rank') && !SEXES.every((x) => data[x])) return;   // names still loading
@@ -121,7 +144,8 @@ function show(name, opts = {}) {
   document.body.dataset.sex = name === 'swipe' || name === 'welcome' ? state.settings.sex : 'both';
   if (name === 'welcome') renderWelcome();
   if (name === 'swipe') renderSwipe();
-  for (const b of $$('.nav-btn')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
+  for (const b of $$('.tab')) { if (b.dataset.go === name) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
+  updateTabs();
   if (name === 'rank') renderRank();
   if (name === 'list') {
     listQuery = ''; $('#list-search').value = ''; listLimit = 100;
@@ -251,11 +275,8 @@ function renderSwipe() {
   current = nextCard();
   persist();
   const c = counts();
-  const need = 4 - (c.like + c.love);
   $('#progress').textContent = summary(c);
   $('#btn-undo').disabled = state.history.length === 0;
-  $('#btn-rank').disabled = need > 0;
-  $('#btn-rank').textContent = need > 0 ? `Rank · ${need} more ${need === 1 ? 'like' : 'likes'}` : 'Rank favourites';
   $('#coach').hidden = !!state.settings.hintSeen;
   for (const id of ['no', 'like', 'love']) $('#btn-' + id).disabled = !current;
   if (!current) {
@@ -402,10 +423,6 @@ function renderList() {
     ul.append(li);
   }
   $('#list-more').hidden = rows.length <= listLimit;
-  const need = 4 - rankedRows().length;                // same threshold as the Rank button on the swipe screen
-  const cmp = $('#rank-more');
-  cmp.disabled = need > 0;
-  $('.lbl', cmp).textContent = need > 0 ? `Compare · ${need} more` : 'Compare';
 }
 
 /* ---------- ranking (this-or-that) ---------- */
@@ -622,6 +639,7 @@ function init() {
   initLetters();
   document.addEventListener('click', (e) => {
     const g = e.target.closest('[data-go]');
+    if (g && g.getAttribute('aria-disabled') === 'true') { toast(g.dataset.lockMsg || 'Not available yet'); return; }
     if (g) { const t = g.dataset.go; if (t === 'list-ranked') show('list', { tab: 'ranked' }); else show(t); }
   });
   $$('input[name=sex]').forEach((i) => i.addEventListener('change', () => setSetting({ sex: i.value })));
@@ -636,7 +654,6 @@ function init() {
   $('#btn-like').addEventListener('click', act('like'));
   $('#btn-love').addEventListener('click', act('love'));
   $('#btn-undo').addEventListener('click', undo);
-  $('#btn-rank').addEventListener('click', () => show('rank'));
   $('#rank-skip').addEventListener('click', skipRank);
   $('#rank-hint-x').addEventListener('click', () => {
     state.settings.rankHintNext = state.compared + CONFIG.hintAfter;   // show again after another 20 comparisons
