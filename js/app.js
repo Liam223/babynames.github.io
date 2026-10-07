@@ -113,6 +113,7 @@ function toast(msg) {
 
 /* ---------- screens ---------- */
 function show(name) {
+  if (name === 'swipe' && !SEXES.every((x) => data[x])) return;   // names still loading
   screen = name;
   for (const s of $$('.screen')) s.hidden = s.id !== 'screen-' + name;
   document.body.dataset.sex = name === 'swipe' || name === 'welcome' ? state.settings.sex : 'both';
@@ -193,6 +194,7 @@ function cardEl(n) {
     <div class="stamp like" aria-hidden="true">LIKE</div>
     <div class="stamp nope" aria-hidden="true">NOPE</div>
     <div class="stamp love" aria-hidden="true">LOVE</div>
+    <div class="glow" aria-hidden="true"></div>
     <div class="sexchip" aria-hidden="true"></div>
     <h2 class="name"></h2>
     ${irish ? '<div class="badge" role="img" aria-label="Irish name">☘️</div>' : ''}
@@ -220,6 +222,20 @@ function cardEl(n) {
 }
 
 /* ---------- swipe ---------- */
+// The undecided name that will come after `cur`, so it can be shown peeking out underneath.
+function peekAfter(cur) {
+  if (!cur) return null;
+  for (const p of state.priority) {
+    const [sex, key] = p.split(':');
+    const n = data[sex] && data[sex].byKey.get(key);
+    if (n && n !== cur.name && !decisionOf(n)) return n;
+  }
+  for (let i = state.queue.pos + (cur.src === 'q' ? 1 : 0); i < queue.length; i++) {
+    if (queue[i] !== cur.name && !decisionOf(queue[i])) return queue[i];
+  }
+  return null;
+}
+
 function renderSwipe() {
   const stage = $('#stage');
   stage.textContent = '';
@@ -240,6 +256,14 @@ function renderSwipe() {
     return;
   }
   document.body.dataset.sex = state.settings.sex;
+  const next = peekAfter(current);
+  if (next) {
+    const back = cardEl(next);
+    back.classList.add('peek');
+    back.setAttribute('aria-hidden', 'true');
+    back.inert = true;
+    stage.append(back);
+  }
   const el = cardEl(current.name);
   stage.append(el);
   swiper = attachSwipe(el, decide);

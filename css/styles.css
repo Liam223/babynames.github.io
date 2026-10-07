@@ -36,7 +36,7 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1C1A17; --surface: #2A2622; --ink: #F4ECDD; --muted: #B3A891; --line: #3B352E; --edge: #0F0D0B; --wood: #3A332B;
+    --bg: #1C1A17; --surface: #2A2622; --ink: #F4ECDD; --muted: #B3A891; --line: #3B352E; --edge: #4F463B; --wood: #3A332B;
     --red: #E8645A;    --red-d: #8E2A22;
     --blue: #5B9BE0;   --blue-d: #254F80;
     --yellow: #F5CB57; --yellow-d: #8F6A12;
@@ -140,6 +140,8 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .chip:nth-child(5n) { --c: var(--orange); --cd: var(--orange-d); --on: var(--on-orange); }
 .chip[aria-pressed="true"] { background: var(--c); color: var(--on); box-shadow: 0 1px 0 var(--cd); transform: translateY(2px); }
 
+.btn.back { background: var(--green); color: var(--on-green); border-color: var(--green); box-shadow: 0 2px 0 var(--green-d); min-height: 44px; margin: 4px 0 6px; padding: 0 16px; }
+
 /* welcome back */
 .resume { background: var(--green); color: var(--on-green); border-radius: 18px; padding: 16px; margin: 0 0 18px; box-shadow: 0 4px 0 var(--green-d); }
 .resume-title { font: 700 1.4rem var(--font-display); margin: 0 0 12px; }
@@ -172,21 +174,23 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .coach p { margin: 0; font-weight: 700; }
 .coach .k { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; font-weight: 800; box-shadow: 0 2px 0 rgba(0,0,0,.25); }
 .k-no { background: var(--red); color: var(--on-red); } .k-like { background: var(--green); color: var(--on-green); } .k-love { background: var(--yellow); color: var(--on-yellow); }
-.stage { position: relative; height: min(56dvh, 460px); min-height: 300px; margin: 8px 0 18px; display: grid; place-items: center; }
-.stage::before { content: ""; position: absolute; inset: 14px 14px -8px; border-radius: 18px; background: var(--surface); border: 2px solid var(--line); opacity: .8; }
+.stage { position: relative; height: min(56vh, 460px); height: min(56svh, 460px); min-height: 300px; margin: 8px 0 30px; display: grid; place-items: center; }
 .card {
   position: absolute; inset: 0; border-radius: 18px; background: var(--surface); color: var(--ink);
   border: 8px solid var(--tint-both); box-shadow: var(--shadow);
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px 14px;
-  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; will-change: transform; overflow: hidden;
+  touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; will-change: transform;
 }
 .card > * { position: relative; }
 .card[data-sex="boys"] { border-color: var(--blue); }
 .card[data-sex="girls"] { border-color: var(--orange); }
 .card[data-sex="both"] { border-color: var(--green); }
 .card.dragging { cursor: grabbing; }
-.card::after { content: ""; position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
-  box-shadow: inset 0 0 0 5px var(--glow-c, transparent), inset 0 0 40px var(--glow-c, transparent); opacity: var(--glow-o, 0); }
+.card:not(.peek) { animation: settle .18s ease-out; }
+@keyframes settle { from { transform-origin: 50% 100%; transform: translateY(20px) scale(.94); } to { transform-origin: 50% 100%; transform: none; } }
+.card.peek { transform-origin: 50% 100%; transform: translateY(20px) scale(.94); pointer-events: none; box-shadow: none; animation: none; }
+.card.peek .stamp, .card.peek .glow { display: none; }
+.card .glow { position: absolute; inset: 0; border: 6px solid transparent; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .12s; }
 .card .name { font: 700 clamp(2.4rem, 13vw, 3.8rem)/1.05 var(--font-display); margin: 0; overflow-wrap: anywhere; }
 .card .name.long { font-size: clamp(1.8rem, 9.5vw, 2.7rem); }
 .card .badge { font-size: 1.6rem; margin-top: 6px; }
@@ -202,7 +206,7 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .countries li.none span { color: var(--muted); font-weight: 600; }
 .card .variants { margin: 6px 0 0; color: var(--muted); font-size: .9rem; }
 .card .sexchip { position: absolute; top: 10px; left: 12px; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.stamp { position: absolute; top: 24px; padding: 2px 12px; border: 4px solid; border-radius: 8px; font: 800 1.6rem var(--font-ui); letter-spacing: .08em; opacity: 0; pointer-events: none; background: color-mix(in srgb, var(--surface) 80%, transparent); }
+.stamp { position: absolute; top: 24px; padding: 2px 12px; border: 4px solid; border-radius: 8px; font: 800 1.6rem var(--font-ui); letter-spacing: .08em; opacity: 0; pointer-events: none; }
 .stamp.like { left: 14px; color: var(--like); transform: rotate(-14deg); }
 .stamp.nope { right: 14px; color: var(--nope); transform: rotate(14deg); }
 .stamp.love { left: 50%; top: auto; bottom: 22px; color: var(--love); translate: -50% 0; }
@@ -212,7 +216,7 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 .round:active { transform: translateY(3px); }
 .round.no { background: var(--red); color: var(--on-red); border-color: var(--red); box-shadow: 0 4px 0 var(--red-d); }
 .round.like { background: var(--green); color: var(--on-green); border-color: var(--green); box-shadow: 0 4px 0 var(--green-d); }
-.round.love { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); box-shadow: 0 4px 0 var(--yellow-d); width: 60px; height: 60px; }
+.round.love { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); box-shadow: 0 4px 0 var(--yellow-d); }
 .round:active.no { box-shadow: 0 2px 0 var(--red-d); } .round:active.like { box-shadow: 0 2px 0 var(--green-d); } .round:active.love { box-shadow: 0 2px 0 var(--yellow-d); }
 .round.like .icon, .round.love .icon { fill: currentColor; }
 .round:disabled { opacity: .45; box-shadow: none; cursor: not-allowed; }

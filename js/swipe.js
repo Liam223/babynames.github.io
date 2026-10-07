@@ -1,31 +1,35 @@
 // Pointer-event gesture handling (touch and mouse). Left = no, right = like, up = love.
 const DIST = 100;        // px needed to commit
 const SPEED = 0.55;      // px/ms flick speed that also commits
+const FLICK_MIN = 60;    // a fast flick must still travel this far to count
+const DEAD = 12;         // px of movement before any stamp or glow shows
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export function attachSwipe(card, onDecide) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, active = false, done = false, id = null;
   const stamp = (cls) => card.querySelector('.stamp.' + cls);
+  const glow = card.querySelector('.glow');
+  const COLOUR = { like: 'like', no: 'nope', love: 'love' };
+
+  function setFeedback(dir, amount) {           // dir: 'like' | 'no' | 'love' | null
+    for (const [d, cls] of [['like', 'like'], ['no', 'nope'], ['love', 'love']]) stamp(cls).style.opacity = d === dir ? amount : 0;
+    glow.style.borderColor = dir ? `var(--${COLOUR[dir]})` : 'transparent';
+    glow.style.opacity = dir ? String(amount) : '0';
+  }
 
   function paint() {
     card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
     const horizontal = Math.abs(dx) >= Math.abs(dy);
-    const p = (v) => Math.max(0, Math.min(1, v / DIST));
-    stamp('like').style.opacity = horizontal && dx > 0 ? p(dx) : 0;
-    stamp('nope').style.opacity = horizontal && dx < 0 ? p(-dx) : 0;
-    stamp('love').style.opacity = !horizontal && dy < 0 ? p(-dy) : 0;
-    // coloured edge glow that grows as the swipe commits
-    const dir = horizontal ? (dx > 0 ? 'like' : 'nope') : dy < 0 ? 'love' : null;
-    const amount = horizontal ? p(Math.abs(dx)) : dy < 0 ? p(-dy) : 0;
-    card.style.setProperty('--glow-c', dir ? `var(--${dir === 'nope' ? 'nope' : dir})` : 'transparent');
-    card.style.setProperty('--glow-o', String(amount));
+    const dist = horizontal ? Math.abs(dx) : -dy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < DEAD || dist <= 0) return setFeedback(null, 0);
+    setFeedback(horizontal ? (dx > 0 ? 'like' : 'no') : 'love', Math.min(1, dist / DIST));
   }
 
   function direction(vx, vy) {
     const horizontal = Math.abs(dx) >= Math.abs(dy);
     if (horizontal) {
-      if (Math.abs(dx) > DIST || Math.abs(vx) > SPEED && Math.abs(dx) > 30) return dx > 0 ? 'like' : 'no';
-    } else if (dy < 0 && (-dy > DIST || -vy > SPEED && -dy > 30)) return 'love';
+      if (Math.abs(dx) > DIST || Math.abs(vx) > SPEED && Math.abs(dx) > FLICK_MIN) return dx > 0 ? 'like' : 'no';
+    } else if (dy < 0 && (-dy > DIST || -vy > SPEED && -dy > FLICK_MIN)) return 'love';
     return null;
   }
 
@@ -45,17 +49,22 @@ export function attachSwipe(card, onDecide) {
     if (!active || e.pointerId !== id) return;
     active = false; card.classList.remove('dragging');
     const dt = Math.max(1, performance.now() - t0);
-    const dir = e.type === 'pointercancel' ? null : direction(dx / dt, dy / dt);
+    const dir = e.type === 'pointerup' ? direction(dx / dt, dy / dt) : null;
     if (dir) fling(dir); else springBack();
   };
   card.addEventListener('pointerup', end);
   card.addEventListener('pointercancel', end);
+  // Safety net: if the browser takes the touch away without telling us, never leave the card or glow stuck.
+  card.addEventListener('lostpointercapture', () => {
+    if (!active) return;
+    active = false; card.classList.remove('dragging'); springBack();
+  });
 
   function springBack() {
     if (!reduced()) card.style.transition = 'transform .28s cubic-bezier(.2,1.4,.4,1)';
-    dx = dy = 0; paint();
-    for (const c of ['like', 'nope', 'love']) stamp(c).style.opacity = 0;
-    card.style.setProperty('--glow-o', '0');
+    dx = dy = 0;
+    card.style.transform = 'translate(0px, 0px) rotate(0deg)';
+    setFeedback(null, 0);
   }
 
   function fling(dir) {
@@ -64,9 +73,7 @@ export function attachSwipe(card, onDecide) {
     const W = innerWidth, H = innerHeight;
     const tx = dir === 'like' ? W : dir === 'no' ? -W : dx;
     const ty = dir === 'love' ? -H : dy;
-    stamp(dir === 'no' ? 'nope' : dir).style.opacity = 1;
-    card.style.setProperty('--glow-c', `var(--${dir === 'no' ? 'nope' : dir})`);
-    card.style.setProperty('--glow-o', '1');
+    setFeedback(dir, 1);
     const finish = () => onDecide(dir);
     if (reduced()) return finish();
     card.style.transition = 'transform .32s ease-in, opacity .32s ease-in';
