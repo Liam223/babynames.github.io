@@ -21,12 +21,13 @@
   --yellow: #F3C13A; --yellow-d: #B8861A;
   --green: #3E9150;  --green-d: #276633;
   --orange: #EC8A2D; --orange-d: #B1601A;
+  --pink: #E8799F;   --pink-d: #B24A71;
   --on-red: #fff; --on-blue: #fff; --on-green: #fff; --on-yellow: #2D2218; --on-orange: #2D2218;
 
   /* meanings (also used as text/outline colours on cream, so a touch darker) */
   --like: #2F7A40; --nope: #C23B30; --love: #A87200;
   --accent: var(--blue); --on-accent: var(--on-blue);
-  --tint-boys: var(--blue); --tint-girls: var(--orange); --tint-both: var(--green);
+  --tint-boys: var(--blue); --tint-girls: var(--pink); --tint-both: var(--green);
 
   --shadow: 0 10px 24px rgba(40, 30, 15, .13);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='320'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.004 .16' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .28 0 0 0 0 .1 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.5'/%3E%3C/svg%3E");
@@ -42,6 +43,7 @@
     --yellow: #F5CB57; --yellow-d: #8F6A12;
     --green: #5BB46C;  --green-d: #256B34;
     --orange: #F0A04D; --orange-d: #8A5217;
+    --pink: #F08FB0;   --pink-d: #8C3556;
     --on-red: #1F1710; --on-blue: #0F1A28; --on-green: #0F2014; --on-yellow: #2D2218; --on-orange: #2D2218;
     --like: #6CC57D; --nope: #FF8077; --love: #F5CB57;
     --shadow: 0 10px 22px rgba(0, 0, 0, .5);
@@ -190,7 +192,7 @@ summary { cursor: pointer; min-height: 48px; display: flex; align-items: center;
 }
 .card > * { position: relative; }
 .card[data-sex="boys"] { border-color: var(--blue); }
-.card[data-sex="girls"] { border-color: var(--orange); }
+.card[data-sex="girls"] { border-color: var(--pink); }
 .card[data-sex="both"] { border-color: var(--green); }
 .card.dragging { cursor: grabbing; }
 .card:not(.peek) { animation: settle .18s ease-out; }
