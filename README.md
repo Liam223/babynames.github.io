@@ -239,6 +239,8 @@ The modern names are byte-for-byte identical to the previous build (same entries
 
 ## Whole history
 
+The details screen's **Over the years** panel turns this into something you can read at a glance: a one-line summary ("A 1990s favourite, now about 21% as common"), three tiles (**Peak**, **Now** as a share of the peak, and **Trend** over the last decade), a bar chart with a smoothed 5-year rolling-average line plus peak and latest-year markers (drag along it to read any year), and coloured country rows with sparklines (England & Wales red, Scotland blue, Northern Ireland yellow, Republic of Ireland green) that double as the selector. Names with only a handful of non-zero years show bars without the line, since a smooth curve would imply a trend that is not there.
+
 Cards and the main data files only carry 2021&ndash;25. The details screen's **Over the years** panel shows every year each source has, from `data/history/<sex>-<letter>.json`, built offline from the same raw files (no API calls):
 
 ```bash

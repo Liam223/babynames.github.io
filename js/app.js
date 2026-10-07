@@ -651,6 +651,7 @@ function undoRank() {
 }
 
 /* ---------- name information ---------- */
+const ptitle = (iconName, cls, text) => `<p class="panel-title"><span class="p-ic ${cls}">${icon(iconName, 16)}</span>${text}</p>`;
 const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function infoButton(n) {
@@ -732,16 +733,10 @@ function renderInfo() {
   // headline numbers
   const sexTotal = (meta.yearTotals || []).reduce((a, b) => a + b, 0);
   if (cl) {
-    out.push(`<div class="panel"><p class="panel-title">History</p>
-      <div class="istats">
-        <div><b>${cl.peak}</b><span>peak year</span></div>
-        <div><b>${fmt(cl.peakCount)}</b><span>${babiesWord(cl.peakCount)} that year</span></div>
-        <div><b>${fmt(cl.full)}</b><span>births on record</span></div>
-      </div>
-      <p class="muted small">Rare today: ${n.count ? `${fmt(n.count)} ${babiesWord(n.count)} in ${esc(span)}` : `fewer than 3 a year in ${esc(span)}`}. Records go back to 1996 (England &amp; Wales), 1997 (Northern Ireland), 1974 (Scotland) and 1964 (Republic of Ireland).</p></div>`);
+    // classics: the "Over the years" panel below carries the history
   } else {
     const oneIn = n.count && sexTotal ? Math.round(sexTotal / n.count) : 0;
-    out.push(`<div class="panel"><p class="panel-title">Popularity</p>
+    out.push(`<div class="panel">${ptitle('chart', 'violet', 'Popularity')}
       <div class="istats">
         <div><b>#${fmt(n.rank)}</b><span>${esc(noun)} names, UK &amp; Ireland</span></div>
         <div><b>${fmt(n.count)}</b><span>${babiesWord(n.count)}, ${esc(span)}</span></div>
@@ -759,14 +754,14 @@ function renderInfo() {
         const ratio = early ? late / early : 0;
         note = `<p class="trend ${tr.label.toLowerCase()}"><span aria-hidden="true">${tr.arrow}</span> ${tr.label}${ratio && tr.label !== 'Steady' ? ` · ${ratio >= 1 ? '×' : '×'}${ratio.toFixed(1)} the share of births since ${yrs[0]}–${String(yrs[1]).slice(2)}` : ''}</p>`;
       }
-      out.push(`<div class="panel"><p class="panel-title">Babies per year</p>${barChart(n.years, yrs.map((y) => `’${String(y).slice(2)}`))}${note}</div>`);
+      out.push(`<div class="panel">${ptitle('chart', 'violet', 'Babies per year')}${barChart(n.years, yrs.map((y) => `’${String(y).slice(2)}`))}${note}</div>`);
     }
 
     // per-country
     if (n.countryRank.length) {
       const rows = n.countryRank.map((r, i) => `<tr><th scope="row">${esc(meta.countries[i])}</th><td>${r ? '#' + fmt(r) : '–'}</td><td>${fmt(n.byCountry[i])}</td></tr>`).join('');
       const so = standout(n, meta);
-      out.push(`<div class="panel"><p class="panel-title">By country</p>
+      out.push(`<div class="panel">${ptitle('pin', 'green', 'By country')}
         <table class="itable"><thead><tr><th></th><th scope="col">Rank</th><th scope="col">Babies</th></tr></thead><tbody>${rows}</tbody></table>
         ${so ? `<p class="standout">Especially popular in ${esc(so.country)}</p>` : ''}
         <p class="muted small">Babies born ${esc(span)}. Each country ranks names within its own list.</p></div>`);
@@ -786,7 +781,7 @@ function renderInfo() {
   const d = state.decisions[n.sex][n.key];
   const elo = state.elo[n.sex][n.key];
   const label = { love: 'Loved', like: 'Liked', no: 'Eliminated' }[d] || 'Not decided yet';
-  out.push(`<div class="panel"><p class="panel-title">Your choice</p>
+  out.push(`<div class="panel">${ptitle('heart', 'red', 'Your choice')}
     <p><span class="ichip ${d || ''}">${label}</span>${elo && elo.n ? ` <span class="muted">Rating ${fmt(Math.round(elo.r))} after ${elo.n} comparison${elo.n === 1 ? '' : 's'}</span>` : ''}</p></div>`);
 
   out.push('<div id="info-extra"></div>');
@@ -822,11 +817,97 @@ const expandSeries = (h, i) => {
   return m;
 };
 
+const ALL_COLOUR = 'orange';
+const COUNTRY_COLOUR = ['red', 'blue', 'yellow', 'green'];       // E&W, Scotland, N. Ireland, Ireland
+
+const average = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
+
+// Centred moving average (the window shrinks at the ends), to show the shape through year-to-year noise.
+function rolling(vals, w = 5) {
+  const half = Math.floor(w / 2);
+  return vals.map((_, i) => average(vals.slice(Math.max(0, i - half), Math.min(vals.length, i + half + 1))));
+}
+
+// Catmull-Rom spline through the points, as an SVG path.
+function smoothPath(p) {
+  if (p.length < 2) return '';
+  let d = `M${p[0][0].toFixed(1)},${p[0][1].toFixed(1)}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
+function sparkPoints(vals, w = 64, h = 18) {
+  const max = Math.max(...vals);
+  if (!max) return '';
+  const step = vals.length > 1 ? w / (vals.length - 1) : 0;
+  return vals.map((v, i) => `${(i * step).toFixed(1)},${(h - 1.5 - (v / max) * (h - 4)).toFixed(1)}`).join(' ');
+}
+
+// The headline facts for a series: peak, where it is now, which way it is heading, and a one-line summary.
+function storyOf(vals, years) {
+  const n = vals.length;
+  const peak = Math.max(...vals);
+  const peakYear = peak ? years[vals.indexOf(peak)] : 0;
+  const last = vals[n - 1];
+  const pct = peak ? Math.round((100 * last) / peak) : 0;
+  const recent = average(vals.slice(-3));
+  const before = n >= 13 ? average(vals.slice(n - 13, n - 10)) : average(vals.slice(0, 3));
+  let trend;
+  if (!before && !recent) trend = { label: 'No trend', arrow: '–', cls: 'steady', caption: 'too few births' };
+  else if (!before) trend = { label: 'New', arrow: '✦', cls: 'rising', caption: 'not listed a decade ago' };
+  else {
+    const ratio = recent / before;
+    const change = Math.round((ratio - 1) * 100);
+    if (ratio >= 1.25) trend = { label: 'Rising', arrow: '↗', cls: 'rising', caption: `${change}% more than a decade ago` };
+    else if (ratio <= 0.8) trend = { label: 'Falling', arrow: '↘', cls: 'falling', caption: recent ? `${Math.abs(change)}% fewer than a decade ago` : 'now under 3 a year' };
+    else trend = { label: 'Steady', arrow: '→', cls: 'steady', caption: 'about the same as a decade ago' };
+  }
+  const dec = Math.floor(peakYear / 10) * 10;
+  let sentence = '';
+  if (peak) {
+    if (last === peak) sentence = 'Most popular right now.';
+    else if (pct >= 70) sentence = `Still close to its peak in ${peakYear}.`;
+    else if (!last) sentence = peakYear < 2010 ? `A ${dec}s favourite that has become rare: now under 3 a year.` : `Peaked in ${peakYear}, now rare: under 3 a year.`;
+    else sentence = `${peakYear < 2010 ? `A ${dec}s favourite` : `Peaked in ${peakYear}`}, now about ${pct}% as common.`;
+  }
+  return { peak, peakYear, last, pct, trend, sentence };
+}
+
+function chartBlock(years, vals, story, END) {
+  const n = years.length;
+  const { peak, peakYear } = story;
+  const dense = vals.filter((v) => v > 0).length >= 8;          // sparse names: bars only (a smoothed line would imply a trend)
+  const H = 100, U = 6;
+  const hOf = (v) => (v ? Math.max(2, (v / peak) * (H - 6)) : 0);
+  const bars = vals.map((v, i) => `<rect x="${i * U + 0.5}" y="${H - hOf(v)}" width="${U - 1}" height="${hOf(v)}" rx="1"></rect>`).join('');
+  const line = dense
+    ? `<path class="avg" d="${smoothPath(rolling(vals).map((v, i) => [i * U + U / 2, H - (v / peak) * (H - 6)]))}" vector-effect="non-scaling-stroke"></path>`
+    : '';
+  const xPct = (i) => (((i + 0.5) / n) * 100).toFixed(2);
+  const yPct = (v) => ((hOf(v) / H) * 100).toFixed(2);
+  const pi = vals.indexOf(peak);
+  const markers = `<i class="mk pk" style="left:${xPct(pi)}%;bottom:${yPct(peak)}%"></i>`
+    + (pi !== n - 1 ? `<i class="mk now" style="left:${xPct(n - 1)}%;bottom:${yPct(vals[n - 1])}%"></i>` : '');
+  let ticks = '';
+  for (let i = 0; i < n; i++) {                                 // decade ticks, skipping any too close to the end labels
+    const pct = ((i + 0.5) / n) * 100;
+    if (years[i] % 10 === 0 && pct >= 14 && pct <= 86) ticks += `<span style="left:${pct.toFixed(2)}%">${years[i]}</span>`;
+  }
+  return `<div class="hread" aria-hidden="true">Peak ${peakYear} · ${fmt(peak)}</div>
+    <div class="hchart"><svg viewBox="0 0 ${n * U} ${H}" preserveAspectRatio="none" aria-hidden="true">${bars}${line}</svg>${markers}<i class="hguide" hidden></i></div>
+    <div class="haxis2"><span class="e0">${years[0]}</span>${ticks}<span class="e1">${END}</span></div>`;
+}
+
 function historyPanel(n, h) {
   const meta = data[n.sex];
   const END = meta.years[meta.years.length - 1];
   const have = [0, 1, 2, 3].filter((i) => h[i]);
-  if (!have.length) return '';
+  if (!have.length) return null;
   const maps = [0, 1, 2, 3].map((i) => expandSeries(h, i));
   // Default: all four combined for modern names; for classics, the country where the name had the most births
   // (the combined view only starts in 1997, so it would miss an older peak).
@@ -834,40 +915,58 @@ function historyPanel(n, h) {
   let sel = infoHistC;
   if (sel === 'auto') sel = n.classic ? String(totals.indexOf(Math.max(...totals))) : 'all';
   const mode = sel !== 'all' && h[+sel] ? +sel : 'all';
-  const from = mode === 'all' ? 1997 : COVER_START[mode];     // 1997 is the first year all four countries' records overlap
-  const years = [], vals = [];
-  for (let y = from; y <= END; y++) {
-    years.push(y);
-    vals.push(mode === 'all' ? have.reduce((t, i) => t + (maps[i].get(y) || 0), 0) : maps[mode].get(y) || 0);
-  }
-  const peak = Math.max(...vals);
-  const peakYear = peak ? years[vals.indexOf(peak)] : 0;
-  const last = vals[vals.length - 1];
+
+  const seriesFor = (m) => {                                    // m: 'all' or a country index
+    const from = m === 'all' ? 1997 : COVER_START[m];           // 1997 is the first year all four countries' records overlap
+    const years = [], vals = [];
+    for (let y = from; y <= END; y++) {
+      years.push(y);
+      vals.push(m === 'all' ? have.reduce((t, i) => t + (maps[i].get(y) || 0), 0) : maps[m].get(y) || 0);
+    }
+    return { years, vals };
+  };
+  const { years, vals } = seriesFor(mode);
+  const story = storyOf(vals, years);
+  const colour = mode === 'all' ? ALL_COLOUR : COUNTRY_COLOUR[mode];
   const where = mode === 'all' ? 'All four countries combined' : COUNTRY_LABEL[mode];
+  const first = years[0] === story.peakYear && story.peak && mode !== 'all';
 
-  const pills = [['all', 'All'], ...have.map((i) => [String(i), COUNTRY_PILL[i]])];
-  const seg = `<div class="seg wrap hist-seg" role="radiogroup" aria-label="Show history for">${pills.map(([v, l]) =>
-    `<label><input type="radio" name="histc" value="${v}"${String(mode) === v ? ' checked' : ''}><span>${esc(l)}</span></label>`).join('')}</div>`;
+  const nowCls = story.pct >= 60 ? 'good' : story.pct >= 25 ? 'mid' : 'low';
+  const tiles = story.peak
+    ? `<div class="story-tiles">
+        <div class="st pk"><span class="lab">Peak</span><b>${story.peakYear}</b><small>${fmt(story.peak)} ${story.peak === 1 ? 'baby' : 'babies'}${first ? ' · first year on record' : ''}</small></div>
+        <div class="st ${nowCls}"><span class="lab">Now</span><b>${story.last === story.peak ? 'At peak' : story.last ? `${story.pct}%` : '<3'}</b><small>${story.last === story.peak ? `highest ever, ${END}` : story.last ? `of the peak (${END})` : `babies in ${END}`}</small></div>
+        <div class="st ${story.trend.cls}"><span class="lab">Trend</span><b>${story.trend.arrow} ${esc(story.trend.label)}</b><small>${esc(story.trend.caption)}</small></div>
+      </div>`
+    : '';
 
-  let chart;
-  if (!peak) {
-    chart = `<p class="muted">No years with 3 or more births in ${esc(where)}.</p>`;
-  } else {
-    const bars = vals.map((v, i) => `<i${years[i] === peakYear ? ' class="pk"' : ''} style="height:${v ? Math.max(3, Math.round((100 * v) / peak)) : 0}%" title="${years[i]}: ${v ? fmt(v) : 'fewer than 3'}"></i>`).join('');
-    chart = `<div class="hbars" role="img" aria-label="${esc(where)}, births per year ${years[0]} to ${END}. Peak ${fmt(peak)} in ${peakYear}.">${bars}</div>
-      <div class="haxis"><span>${years[0]}</span><span>peak ${peakYear}</span><span>${END}</span></div>
-      <p class="small"><b>${esc(where)}:</b> peaked in ${peakYear} with ${fmt(peak)} ${peak === 1 ? 'baby' : 'babies'}${peakYear === years[0] ? ' (the first year on record, so it may have been higher earlier)' : ''}. ${last ? `${fmt(last)} in ${END} (${Math.round((100 * last) / peak)}% of the peak).` : `Fewer than 3 in ${END}.`}</p>`;
-  }
-
-  const rows = have.map((i) => {
-    let total = 0, pk = 0, py = 0;
-    for (const [y, c] of maps[i]) { total += c; if (c > pk) { pk = c; py = y; } }
-    return `<tr><th scope="row">${esc(COUNTRY_LABEL[i])}</th><td>${fmt(total)}</td><td>${py ? `${py} · ${fmt(pk)}` : '–'}</td><td>${COVER_START[i]}</td></tr>`;
+  const rowsHtml = [['all', null], ...have.map((i) => [i, i])].map(([v, i]) => {
+    const s = seriesFor(v);
+    const total = s.vals.reduce((a, b) => a + b, 0);
+    const pk = Math.max(...s.vals);
+    const py = pk ? s.years[s.vals.indexOf(pk)] : 0;
+    const on = v === mode;
+    const label = v === 'all' ? 'All four combined' : COUNTRY_LABEL[v];
+    const sub = v === 'all' ? `${s.years[0]}–${END}` : `since ${COVER_START[v]}`;
+    const cc = v === 'all' ? ALL_COLOUR : COUNTRY_COLOUR[v];
+    return `<button type="button" class="crow${on ? ' on' : ''}" data-c="${v}" style="--cc:var(--${cc});--ccd:var(--${cc === 'yellow' ? 'yellow-d' : cc})" aria-pressed="${on}">
+      <i class="dot"></i><span class="cn">${esc(label)}<small>${esc(sub)}</small></span>
+      <svg class="sp" viewBox="0 0 64 18" aria-hidden="true"><polyline points="${sparkPoints(s.vals)}"></polyline></svg>
+      <span class="ct"><b>${fmt(total)}</b><small>${py ? `peak ${py}` : 'births'}</small></span></button>`;
   }).join('');
-  return `<div class="panel"><p class="panel-title">Over the years</p>${seg}${chart}
-    <p class="panel-title sub">Whole history by country</p>
-    <table class="itable"><thead><tr><th></th><th scope="col">Births</th><th scope="col">Peak</th><th scope="col">From</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="muted small">Names given to fewer than 3 babies in a year aren’t published, so those years show as gaps and the totals are a minimum. “All” covers 1997 onwards, when all four countries’ records overlap; each country’s own history goes back further where its records do.</p></div>`;
+
+  const rare = n.classic ? `<p class="muted small">Rare today: ${n.count ? `${fmt(n.count)} ${n.count === 1 ? 'baby' : 'babies'} in ${meta.years[0]}–${String(END).slice(2)}` : `under 3 a year in ${meta.years[0]}–${String(END).slice(2)}`}.</p>` : '';
+  const body = story.peak
+    ? `${story.sentence ? `<p class="story">${esc(story.sentence)}</p>` : ''}${tiles}
+       <p class="scope" style="--cc:var(--${colour})"><i class="dot"></i>${esc(where)}</p>${chartBlock(years, vals, story, END)}`
+    : `<p class="muted">No years with 3 or more births in ${esc(where)}.</p>`;
+  return {
+    html: `<div class="panel" style="--cc:var(--${colour});--ccd:var(--${colour === 'yellow' ? 'yellow-d' : colour})">${ptitle('trend', 'orange', 'Over the years')}${body}
+      <p class="panel-title sub">Where it was popular</p><div class="crows">${rowsHtml}</div>${rare}
+      <details class="note"><summary>How to read this</summary>
+        <p>Bars are births per year; the line is a 5-year rolling average. Names given to fewer than 3 babies in a year aren’t published, so those years show as gaps and the totals are minimums. “All four combined” starts in 1997, the first year every country’s records overlap; each country’s own chart goes back as far as its records do (Republic of Ireland 1964, Scotland 1974, England &amp; Wales 1996, Northern Ireland 1997). Drag along the chart to read a year.</p></details></div>`,
+    years, vals,
+  };
 }
 
 function renderInfoHistory(n) {
@@ -876,9 +975,33 @@ function renderInfoHistory(n) {
   slot.innerHTML = '<div class="panel"><p class="muted">Loading history…</p></div>';
   loadHistory(n.sex, n.key).then((h) => {
     const draw = () => {
-      if (screen !== 'info' || infoEntry() !== n || !$('#info-history')) return;      // user moved on
-      $('#info-history').innerHTML = h ? historyPanel(n, h) : '';
-      $$('input[name=histc]').forEach((i) => i.addEventListener('change', () => { infoHistC = i.value; draw(); }));
+      const target = $('#info-history');
+      if (screen !== 'info' || infoEntry() !== n || !target) return;      // user moved on
+      const p = h ? historyPanel(n, h) : null;
+      if (!p) {
+        target.innerHTML = n.classic
+          ? `<div class="panel">${ptitle('trend', 'orange', 'History')}<p class="muted">Peaked in ${n.classic.peak} with ${fmt(n.classic.peakCount)} ${n.classic.peakCount === 1 ? 'baby' : 'babies'}; ${fmt(n.classic.full)} births on record.</p></div>`
+          : '';
+        return;
+      }
+      target.innerHTML = p.html;
+      $$('.crow', target).forEach((b) => b.addEventListener('click', () => { infoHistC = b.dataset.c; draw(); }));
+      const chart = $('.hchart', target);
+      if (chart) {                                                  // drag (or hover) along the chart to read a year
+        const read = $('.hread', target), guide = $('.hguide', target), def = read.textContent, len = p.years.length;
+        const move = (e) => {
+          const r = chart.getBoundingClientRect();
+          const i = Math.max(0, Math.min(len - 1, Math.floor(((e.clientX - r.left) / r.width) * len)));
+          const v = p.vals[i];
+          read.textContent = `${p.years[i]} · ${v ? `${fmt(v)} ${v === 1 ? 'baby' : 'babies'}` : 'under 3'}`;
+          guide.style.left = `${(((i + 0.5) / len) * 100).toFixed(2)}%`;
+          guide.hidden = false;
+        };
+        const reset = () => { read.textContent = def; guide.hidden = true; };
+        chart.addEventListener('pointerdown', move);
+        chart.addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse' || e.buttons) move(e); });
+        for (const ev of ['pointerleave', 'pointerup', 'pointercancel']) chart.addEventListener(ev, reset);
+      }
     };
     draw();
   });
@@ -920,7 +1043,7 @@ function aboutPanel(n, it) {
   const credit = links.length
     ? `<p class="muted small">Read more: ${links.join(' · ')}. Text from Wiktionary and Wikipedia, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</p>`
     : '';
-  return `<div class="panel"><p class="panel-title">About this name</p>${rows.join('')}${credit}</div>`;
+  return `<div class="panel">${ptitle('info', 'yellow', 'About this name')}${rows.join('')}${credit}</div>`;
 }
 
 function renderInfoExtra(n) {
@@ -931,7 +1054,7 @@ function renderInfoExtra(n) {
     const it = infoData && infoData.items[n.key];
     $('#info-extra').innerHTML = it && Object.keys(it).length
       ? aboutPanel(n, it)
-      : '<div class="panel"><p class="panel-title">About this name</p><p class="muted">No origin, meaning or pronunciation found for this name yet. Names outside the most popular ones and the Irish-language names are only partly covered.</p></div>';
+      : `<div class="panel">${ptitle('info', 'yellow', 'About this name')}<p class="muted">No origin, meaning or pronunciation found for this name yet. Names outside the most popular ones and the Irish-language names are only partly covered.</p></div>`;
   };
   if (infoData) { fill(); return; }
   slot.innerHTML = '<div class="panel"><p class="muted">Loading more about this name…</p></div>';
